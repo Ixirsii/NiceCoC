@@ -21,3 +21,26 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+# Build files
+.gradle
+MANIFEST.MF
+target
+build
+
+# Folder config file
+Desktop.ini
+.DS_Store
+
+# Windows shortcuts
+*.lnk
+
+# Thumbnails
+._*
+
+# IntelliJ project files
+.idea
+*.iml
+
+# Application resources
+log
