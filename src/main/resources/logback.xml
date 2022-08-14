@@ -30,7 +30,6 @@
     </root>
 
     <logger name="io.netty" level="WARN"/>
-    <logger name="reactor.netty" level="WARN"/>
-    <logger name="discord4j.core" level="WARN"/>
-    <logger name="discord4j.gateway" level="WARN"/>
+    <logger name="reactor" level="WARN"/>
+    <logger name="discord4j" level="WARN"/>
 </configuration>

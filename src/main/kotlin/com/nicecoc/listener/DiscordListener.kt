@@ -1,20 +1,50 @@
 package com.nicecoc.listener
 
+import com.google.common.eventbus.EventBus
+import com.nicecoc.event.StopBotEvent
 import com.nicecoc.logging.Logging
 import com.nicecoc.logging.LoggingImpl
-import discord4j.core.event.EventDispatcher
+import discord4j.core.event.domain.interaction.ChatInputInteractionEvent
 import discord4j.core.event.domain.lifecycle.ReadyEvent
 import discord4j.core.event.domain.message.MessageCreateEvent
+import discord4j.core.`object`.command.ApplicationCommandInteractionOption
+import discord4j.core.`object`.command.ApplicationCommandInteractionOptionValue
 import discord4j.core.`object`.entity.Member
+import discord4j.core.spec.InteractionApplicationCommandCallbackReplyMono
 import org.koin.core.annotation.Single
 
+/**
+ * Discord event listener.
+ *
+ * @author Ryan Porterfield
+ */
 @Single
-class DiscordListener(eventDispatcher: EventDispatcher) : Logging by LoggingImpl<DiscordListener>() {
+class DiscordListener(
+    /** Event bus to publish events to. */
+    private val eventBus: EventBus
+) : Logging by LoggingImpl<DiscordListener>() {
 
-    init {
-        log.trace("Registering Discord event listeners")
-        eventDispatcher.on(MessageCreateEvent::class.java).subscribe(::messageCreateListener)
-        eventDispatcher.on(ReadyEvent::class.java).subscribe(::readyEventListener)
+    /**
+     * [ChatInputInteractionEvent] listener.
+     *
+     * @param event Chat input interaction event.
+     */
+    fun chatInputInteractionListener(event: ChatInputInteractionEvent): InteractionApplicationCommandCallbackReplyMono? {
+        log.info("Got command /{} {}", event.commandName, event.options.map { "${it.name}: ${it.value}" })
+
+        if (event.commandName.equals("stop")) {
+            val isGraceful: Boolean = event.getOption("isGraceful")
+                .flatMap(ApplicationCommandInteractionOption::getValue)
+                .map(ApplicationCommandInteractionOptionValue::asBoolean)
+                .orElse(true)
+            val reply: String = if (isGraceful) "Stopping the bot gracefully" else "Force stopping the bot"
+            val stopEvent = StopBotEvent(isGraceful)
+
+            event.reply(reply).withEphemeral(true).block()
+            eventBus.post(stopEvent)
+        }
+
+        return null
     }
 
     /**
@@ -22,7 +52,7 @@ class DiscordListener(eventDispatcher: EventDispatcher) : Logging by LoggingImpl
      *
      * @param event Message creation event.
      */
-    private fun messageCreateListener(event: MessageCreateEvent) {
+    fun messageCreateListener(event: MessageCreateEvent) {
         log.info(
             "#{} [{}]: {}",
             event.message.channelId.asLong(),
@@ -36,7 +66,7 @@ class DiscordListener(eventDispatcher: EventDispatcher) : Logging by LoggingImpl
      *
      * @param event Ready (bot logged in) event.
      */
-    private fun readyEventListener(event: ReadyEvent) {
+    fun readyEventListener(event: ReadyEvent) {
         log.info("Logged in as {}#{}", event.self.username, event.self.discriminator)
     }
 }

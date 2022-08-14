@@ -23,6 +23,8 @@ dependencies {
     ksp("io.insert-koin:koin-ksp-compiler:1.0.1")
     // Discord4J
     implementation("com.discord4j:discord4j-core:3.2.2")
+    // Google Guava
+    implementation("com.google.guava:guava:31.1-jre")
     // Jackson
     implementation("com.fasterxml.jackson.core:jackson-core:2.13.3")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.13.3")

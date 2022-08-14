@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory
 
 /**
  * Implementation which injects the [Logger].
+ *
+ * @author Ryan Porterfield
  */
 class LoggingImpl(override val log: Logger) : Logging {
     companion object {
