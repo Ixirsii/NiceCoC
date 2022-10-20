@@ -16,6 +16,14 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+
+    maven {
+        url = uri("https://maven.pkg.github.com/Lycoon/clash-api")
+        credentials {
+            username = project.findProperty("gpr.user") as String? ?: System.getenv("USERNAME")
+            password = project.findProperty("gpr.key") as String? ?: System.getenv("TOKEN")
+        }
+    }
 }
 
 dependencies {

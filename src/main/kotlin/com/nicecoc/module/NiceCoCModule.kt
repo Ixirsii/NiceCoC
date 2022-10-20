@@ -1,6 +1,7 @@
 package com.nicecoc.module
 
 import com.google.common.eventbus.EventBus
+import com.lycoon.clashapi.core.ClashAPI
 import com.nicecoc.listener.DiscordListener
 import com.nicecoc.logging.Logging
 import com.nicecoc.logging.LoggingImpl
@@ -21,25 +22,8 @@ import org.koin.core.annotation.Single
 @Module
 class NiceCoCModule : Logging by LoggingImpl<NiceCoCModule>() {
 
-    /**
-     * Singleton provider for [GatewayDiscordClient].
-     *
-     * @return [GatewayDiscordClient] singleton.
-     */
     @Single
-    fun gatewayDiscordClient(discordListener: DiscordListener): GatewayDiscordClient {
-        log.trace("Creating GatewayDiscordClient")
-
-        return DiscordClient.create("MTAwNzc0ODUyMjM1Mjg0NDg3Mw.GjBTEX.mwo3fAYPyhOxmE7JV_G5_X1t7ddD9JAMIFE46c")
-            .gateway()
-            .withEventDispatcher {
-                it.on(ChatInputInteractionEvent::class.java).subscribe(discordListener::chatInputInteractionListener)
-                it.on(MessageCreateEvent::class.java).subscribe(discordListener::messageCreateListener)
-                it.on(ReadyEvent::class.java).doOnNext(discordListener::readyEventListener)
-            }
-            .login()
-            .block()!!
-    }
+    fun clashApi(): ClashAPI = ClashAPI("")
 
     /**
      * Singleton provider for [EventBus].
@@ -63,5 +47,25 @@ class NiceCoCModule : Logging by LoggingImpl<NiceCoCModule>() {
         log.trace("Creating EventDispatcher")
 
         return client.eventDispatcher
+    }
+
+    /**
+     * Singleton provider for [GatewayDiscordClient].
+     *
+     * @return [GatewayDiscordClient] singleton.
+     */
+    @Single
+    fun gatewayDiscordClient(discordListener: DiscordListener): GatewayDiscordClient {
+        log.trace("Creating GatewayDiscordClient")
+
+        return DiscordClient.create("MTAwNzc0ODUyMjM1Mjg0NDg3Mw.GjBTEX.mwo3fAYPyhOxmE7JV_G5_X1t7ddD9JAMIFE46c")
+            .gateway()
+            .withEventDispatcher {
+                it.on(ChatInputInteractionEvent::class.java).subscribe(discordListener::chatInputInteractionListener)
+                it.on(MessageCreateEvent::class.java).subscribe(discordListener::messageCreateListener)
+                it.on(ReadyEvent::class.java).doOnNext(discordListener::readyEventListener)
+            }
+            .login()
+            .block()!!
     }
 }
