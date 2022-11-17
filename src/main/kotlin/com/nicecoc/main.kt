@@ -1,6 +1,7 @@
 package com.nicecoc
 
 import com.nicecoc.api.ApiModule
+import com.nicecoc.command.CommandModule
 import com.nicecoc.listener.ListenerModule
 import com.nicecoc.module.NiceCoCModule
 import org.koin.core.context.startKoin
@@ -13,7 +14,7 @@ import org.koin.ksp.generated.module
  */
 fun main() {
     startKoin {
-        modules(ApiModule().module, NiceCoCModule().module, ListenerModule().module)
+        modules(ApiModule().module, CommandModule().module, NiceCoCModule().module, ListenerModule().module)
     }
 
     NiceCoCBot().use {

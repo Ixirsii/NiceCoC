@@ -10,7 +10,6 @@ import discord4j.core.GatewayDiscordClient
 import discord4j.core.event.EventDispatcher
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent
 import discord4j.core.event.domain.lifecycle.ReadyEvent
-import discord4j.core.event.domain.message.MessageCreateEvent
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Single
 
@@ -23,7 +22,7 @@ import org.koin.core.annotation.Single
 class NiceCoCModule : Logging by LoggingImpl<NiceCoCModule>() {
 
     @Single
-    fun clashApi(): ClashAPI = ClashAPI("")
+    fun clashAPI(): ClashAPI = ClashAPI("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6IjZhMWNjMDkzLTM2MWMtNDE2Yi04NjNmLTJmZGQzMTU3M2ZlYiIsImlhdCI6MTY2ODQ3MTg5MCwic3ViIjoiZGV2ZWxvcGVyL2M1OTE4ZDhlLWIzZWEtYzViNi1lMTA3LTQ2YWM0MDQ4M2U1OCIsInNjb3BlcyI6WyJjbGFzaCJdLCJsaW1pdHMiOlt7InRpZXIiOiJkZXZlbG9wZXIvc2lsdmVyIiwidHlwZSI6InRocm90dGxpbmcifSx7ImNpZHJzIjpbIjk4LjM4LjI0MS4xMjAiXSwidHlwZSI6ImNsaWVudCJ9XX0.5UqrDkq22Bbw_gNXohEXwNpNSXC1EB4ARTJsJE1p701nXtwM1QvI2pdQ44LupAzRSWfLDZvsuU4Por9vK8M-jA")
 
     /**
      * Singleton provider for [EventBus].
@@ -62,7 +61,6 @@ class NiceCoCModule : Logging by LoggingImpl<NiceCoCModule>() {
             .gateway()
             .withEventDispatcher {
                 it.on(ChatInputInteractionEvent::class.java).subscribe(discordListener::chatInputInteractionListener)
-                it.on(MessageCreateEvent::class.java).subscribe(discordListener::messageCreateListener)
                 it.on(ReadyEvent::class.java).doOnNext(discordListener::readyEventListener)
             }
             .login()
