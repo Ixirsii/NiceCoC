@@ -3,6 +3,12 @@ package com.nicecoc.command
 import com.lycoon.clashapi.core.ClashAPI
 import com.lycoon.clashapi.models.war.War
 import com.lycoon.clashapi.models.war.enums.WarState
+import com.nicecoc.data.blue
+import com.nicecoc.data.green
+import com.nicecoc.data.lightBlue
+import com.nicecoc.data.orange
+import com.nicecoc.data.red
+import com.nicecoc.data.yellow
 import com.nicecoc.logging.Logging
 import com.nicecoc.logging.LoggingImpl
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent
@@ -32,16 +38,6 @@ class CurrentWarCommand(
     /** Command name. */
     override val name: String = "current_war"
 
-    // TODO: Move these somewhere else
-    /** Material theme red 600. */
-    private val red = Color.of(0xE53935)
-
-    /** Material theme yellow 500. */
-    private val yellow = Color.of(0xFFEB3B)
-
-    /** Material theme green 500. */
-    private val green = Color.of(0x4CAF50)
-
     /** Midwest Warrior Clan tag */
     private val clanTag: String = "2Q82UJVY"
 
@@ -51,7 +47,7 @@ class CurrentWarCommand(
      * @param event Chat command event.
      */
     override fun listener(event: ChatInputInteractionEvent) {
-        if (event.commandName == "current_war") {
+        if (event.commandName == name) {
             event.deferReply()
 
             val war: War = clashAPI.getCurrentWar(clanTag)
@@ -61,19 +57,34 @@ class CurrentWarCommand(
             val title: String
 
             when (war.state) {
+                WarState.CLAN_NOT_FOUND, WarState.ACCESS_DENIED -> {
+                    color = red
+                    title = "Error getting war status"
+                }
+
                 WarState.WAR, WarState.IN_WAR -> {
-                    color = green
+                    color = yellow
                     title = "War day against ${war.opponent?.name}"
                 }
 
                 WarState.PREPARATION -> {
-                    color = yellow
+                    color = green
                     title = "Prep day against ${war.opponent?.name}"
                 }
 
-                else -> {
-                    color = red
+                WarState.IN_MATCHMAKING, WarState.ENTER_WAR, WarState.MATCHED -> {
+                    color = lightBlue
+                    title = "Searching for war"
+                }
+
+                WarState.NOT_IN_WAR -> {
+                    color = blue
                     title = "No active war"
+                }
+
+                WarState.ENDED -> {
+                    color = orange
+                    title = "War has ended"
                 }
             }
 

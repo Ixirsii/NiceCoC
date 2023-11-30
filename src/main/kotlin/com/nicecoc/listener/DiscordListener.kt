@@ -36,6 +36,6 @@ class DiscordListener(
      * @param event Ready (bot logged in) event.
      */
     fun readyEventListener(event: ReadyEvent) {
-        log.info("Logged in as {}#{}", event.self.username, event.self.discriminator)
+        log.info("Logged in as {}", event.self.username)
     }
 }

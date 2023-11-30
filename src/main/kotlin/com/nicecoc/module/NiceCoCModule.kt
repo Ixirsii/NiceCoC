@@ -6,6 +6,7 @@ import com.nicecoc.listener.DiscordListener
 import com.nicecoc.logging.Logging
 import com.nicecoc.logging.LoggingImpl
 import discord4j.core.DiscordClient
+import discord4j.core.DiscordClientBuilder
 import discord4j.core.GatewayDiscordClient
 import discord4j.core.event.EventDispatcher
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent
@@ -22,7 +23,8 @@ import org.koin.core.annotation.Single
 class NiceCoCModule : Logging by LoggingImpl<NiceCoCModule>() {
 
     @Single
-    fun clashAPI(): ClashAPI = ClashAPI("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6IjZhMWNjMDkzLTM2MWMtNDE2Yi04NjNmLTJmZGQzMTU3M2ZlYiIsImlhdCI6MTY2ODQ3MTg5MCwic3ViIjoiZGV2ZWxvcGVyL2M1OTE4ZDhlLWIzZWEtYzViNi1lMTA3LTQ2YWM0MDQ4M2U1OCIsInNjb3BlcyI6WyJjbGFzaCJdLCJsaW1pdHMiOlt7InRpZXIiOiJkZXZlbG9wZXIvc2lsdmVyIiwidHlwZSI6InRocm90dGxpbmcifSx7ImNpZHJzIjpbIjk4LjM4LjI0MS4xMjAiXSwidHlwZSI6ImNsaWVudCJ9XX0.5UqrDkq22Bbw_gNXohEXwNpNSXC1EB4ARTJsJE1p701nXtwM1QvI2pdQ44LupAzRSWfLDZvsuU4Por9vK8M-jA")
+    fun clashAPI(): ClashAPI =
+        ClashAPI("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6IjZhMWNjMDkzLTM2MWMtNDE2Yi04NjNmLTJmZGQzMTU3M2ZlYiIsImlhdCI6MTY2ODQ3MTg5MCwic3ViIjoiZGV2ZWxvcGVyL2M1OTE4ZDhlLWIzZWEtYzViNi1lMTA3LTQ2YWM0MDQ4M2U1OCIsInNjb3BlcyI6WyJjbGFzaCJdLCJsaW1pdHMiOlt7InRpZXIiOiJkZXZlbG9wZXIvc2lsdmVyIiwidHlwZSI6InRocm90dGxpbmcifSx7ImNpZHJzIjpbIjk4LjM4LjI0MS4xMjAiXSwidHlwZSI6ImNsaWVudCJ9XX0.5UqrDkq22Bbw_gNXohEXwNpNSXC1EB4ARTJsJE1p701nXtwM1QvI2pdQ44LupAzRSWfLDZvsuU4Por9vK8M-jA")
 
     /**
      * Singleton provider for [EventBus].
@@ -30,23 +32,7 @@ class NiceCoCModule : Logging by LoggingImpl<NiceCoCModule>() {
      * @return [EventBus] singleton.
      */
     @Single
-    fun eventBus(): EventBus {
-        log.trace("Creating EventBus")
-
-        return EventBus()
-    }
-
-    /**
-     * Singleton provider for [EventDispatcher].
-     *
-     * @return [EventDispatcher] singleton.
-     */
-    @Single
-    fun eventDispatcher(client: GatewayDiscordClient): EventDispatcher {
-        log.trace("Creating EventDispatcher")
-
-        return client.eventDispatcher
-    }
+    fun eventBus(): EventBus = EventBus()
 
     /**
      * Singleton provider for [GatewayDiscordClient].
@@ -57,13 +43,16 @@ class NiceCoCModule : Logging by LoggingImpl<NiceCoCModule>() {
     fun gatewayDiscordClient(discordListener: DiscordListener): GatewayDiscordClient {
         log.trace("Creating GatewayDiscordClient")
 
-        return DiscordClient.create("MTAwNzc0ODUyMjM1Mjg0NDg3Mw.GjBTEX.mwo3fAYPyhOxmE7JV_G5_X1t7ddD9JAMIFE46c")
-            .gateway()
-            .withEventDispatcher {
-                it.on(ChatInputInteractionEvent::class.java).subscribe(discordListener::chatInputInteractionListener)
-                it.on(ReadyEvent::class.java).doOnNext(discordListener::readyEventListener)
-            }
+        val client: GatewayDiscordClient = DiscordClientBuilder
+            .create("MTAwNzc0ODUyMjM1Mjg0NDg3Mw.GjBTEX.mwo3fAYPyhOxmE7JV_G5_X1t7ddD9JAMIFE46c")
+            .build()
             .login()
             .block()!!
+
+        client.eventDispatcher.on(ChatInputInteractionEvent::class.java)
+            .subscribe(discordListener::chatInputInteractionListener)
+        client.eventDispatcher.on(ReadyEvent::class.java).subscribe(discordListener::readyEventListener)
+
+        return client
     }
 }
