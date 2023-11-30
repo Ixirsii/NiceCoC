@@ -1,7 +1,8 @@
 package com.nicecoc.command
 
+import com.lycoon.clashapi.core.ClashAPI
 import com.lycoon.clashapi.models.war.War
-import com.nicecoc.api.ClashApi
+import com.lycoon.clashapi.models.war.enums.WarState
 import com.nicecoc.logging.Logging
 import com.nicecoc.logging.LoggingImpl
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent
@@ -19,8 +20,8 @@ import org.koin.core.annotation.Single
  */
 @Single
 class CurrentWarCommand(
-    private val clashApi: ClashApi
-): Command, Logging by LoggingImpl<CurrentWarCommand>() {
+    private val clashAPI: ClashAPI,
+) : Command, Logging by LoggingImpl<CurrentWarCommand>() {
     /** [ApplicationCommandRequest] to register the command with Discord APIs. */
     override val request: ApplicationCommandRequest
         get() = ApplicationCommandRequest.builder()
@@ -34,10 +35,15 @@ class CurrentWarCommand(
     // TODO: Move these somewhere else
     /** Material theme red 600. */
     private val red = Color.of(0xE53935)
+
     /** Material theme yellow 500. */
     private val yellow = Color.of(0xFFEB3B)
+
     /** Material theme green 500. */
     private val green = Color.of(0x4CAF50)
+
+    /** Midwest Warrior Clan tag */
+    private val clanTag: String = "2Q82UJVY"
 
     /**
      * Function which can be registered to listen to chat input interaction events.
@@ -48,19 +54,19 @@ class CurrentWarCommand(
         if (event.commandName == "current_war") {
             event.deferReply()
 
-            val war: War = clashApi.getCurrentWar()
+            val war: War = clashAPI.getCurrentWar(clanTag)
 
             val applicationInfo: ApplicationInfo? = event.client.applicationInfo.block()
             val color: Color
             val title: String
 
             when (war.state) {
-                "active" -> {
+                WarState.WAR, WarState.IN_WAR -> {
                     color = green
                     title = "War day against ${war.opponent?.name}"
                 }
 
-                "preparation" -> {
+                WarState.PREPARATION -> {
                     color = yellow
                     title = "Prep day against ${war.opponent?.name}"
                 }
@@ -72,7 +78,11 @@ class CurrentWarCommand(
             }
 
             val embed: EmbedCreateSpec = EmbedCreateSpec.builder()
-                .author(applicationInfo?.name ?: "", "https://bitbucket.org/phrionhaus/nicecoc/src/main/", applicationInfo?.getIcon(Image.Format.PNG)?.block()?.dataUri ?: "")
+                .author(
+                    applicationInfo?.name ?: "",
+                    "https://bitbucket.org/phrionhaus/nicecoc/src/main/",
+                    applicationInfo?.getIcon(Image.Format.PNG)?.block()?.dataUri ?: ""
+                )
                 .color(color)
                 .title(title)
                 .build()
