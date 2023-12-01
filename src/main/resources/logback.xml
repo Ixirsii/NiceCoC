@@ -31,5 +31,5 @@
 
     <logger name="io.netty" level="WARN"/>
     <logger name="reactor" level="WARN"/>
-    <logger name="discord4j" level="WARN"/>
+    <logger name="discord4j" level="INFO"/>
 </configuration>

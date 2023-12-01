@@ -48,54 +48,57 @@ class CurrentWarCommand(
      */
     override fun listener(event: ChatInputInteractionEvent) {
         if (event.commandName == name) {
-            event.deferReply()
+            event.deferReply().subscribe()
 
+            val color: Color
+            val description: String
+            // TODO: Catch exceptions
+            val title: String = clashAPI.getClan(clanTag).name
             val war: War = clashAPI.getCurrentWar(clanTag)
 
-            val applicationInfo: ApplicationInfo? = event.client.applicationInfo.block()
-            val color: Color
-            val title: String
+            war.clan?.name
 
             when (war.state) {
                 WarState.CLAN_NOT_FOUND, WarState.ACCESS_DENIED -> {
                     color = red
-                    title = "Error getting war status"
+                    description = "Error getting war status"
                 }
 
                 WarState.WAR, WarState.IN_WAR -> {
                     color = yellow
-                    title = "War day against ${war.opponent?.name}"
+                    description = "War day against ${war.opponent?.name}"
                 }
 
                 WarState.PREPARATION -> {
                     color = green
-                    title = "Prep day against ${war.opponent?.name}"
+                    description = "Prep day against ${war.opponent?.name}"
                 }
 
                 WarState.IN_MATCHMAKING, WarState.ENTER_WAR, WarState.MATCHED -> {
                     color = lightBlue
-                    title = "Searching for war"
+                    description = "Searching for war"
                 }
 
                 WarState.NOT_IN_WAR -> {
                     color = blue
-                    title = "No active war"
+                    description = "No active war"
                 }
 
                 WarState.ENDED -> {
                     color = orange
-                    title = "War has ended"
+                    description = "War has ended"
                 }
             }
 
             val embed: EmbedCreateSpec = EmbedCreateSpec.builder()
                 .author(
-                    applicationInfo?.name ?: "",
-                    "https://bitbucket.org/phrionhaus/nicecoc/src/main/",
-                    applicationInfo?.getIcon(Image.Format.PNG)?.block()?.dataUri ?: ""
+                    event.client.self.block()?.username ?: "",
+                    "https://github.com/Ixirsii/NiceCoC",
+                    event.client.self.block()?.avatarUrl ?: "",
                 )
                 .color(color)
                 .title(title)
+                .description(description)
                 .build()
 
             event.editReply().withEmbeds(embed).subscribe()

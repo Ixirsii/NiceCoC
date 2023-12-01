@@ -23,7 +23,7 @@ class DiscordApi(
         log.trace("Initializing...")
 
         val applicationId: Long = client.restClient.applicationId.block() ?: 0L
-        // m'Butts guild ID
+        // Transient Gamers guild ID
         val guildId: Long = 107871773818658816
 
         commands.forEach { (_, command) ->
@@ -43,5 +43,9 @@ class DiscordApi(
         log.trace("Closing Discord gateway")
 
         client.logout().block()
+    }
+
+    fun run() {
+        client.onDisconnect().block()
     }
 }

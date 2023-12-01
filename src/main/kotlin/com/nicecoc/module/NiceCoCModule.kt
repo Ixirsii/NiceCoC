@@ -20,11 +20,11 @@ import org.koin.core.annotation.Single
  * @author Ryan Porterfield
  */
 @Module
-class NiceCoCModule : Logging by LoggingImpl<NiceCoCModule>() {
+class NiceCoCModule {
 
     @Single
     fun clashAPI(): ClashAPI =
-        ClashAPI("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6IjZhMWNjMDkzLTM2MWMtNDE2Yi04NjNmLTJmZGQzMTU3M2ZlYiIsImlhdCI6MTY2ODQ3MTg5MCwic3ViIjoiZGV2ZWxvcGVyL2M1OTE4ZDhlLWIzZWEtYzViNi1lMTA3LTQ2YWM0MDQ4M2U1OCIsInNjb3BlcyI6WyJjbGFzaCJdLCJsaW1pdHMiOlt7InRpZXIiOiJkZXZlbG9wZXIvc2lsdmVyIiwidHlwZSI6InRocm90dGxpbmcifSx7ImNpZHJzIjpbIjk4LjM4LjI0MS4xMjAiXSwidHlwZSI6ImNsaWVudCJ9XX0.5UqrDkq22Bbw_gNXohEXwNpNSXC1EB4ARTJsJE1p701nXtwM1QvI2pdQ44LupAzRSWfLDZvsuU4Por9vK8M-jA")
+        ClashAPI("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6IjdjYWU1MjlmLTQ5M2UtNDUyYS1hMTdjLWFkZjI5MjdjMmQzNCIsImlhdCI6MTcwMTQ2ODc2MCwic3ViIjoiZGV2ZWxvcGVyL2M1OTE4ZDhlLWIzZWEtYzViNi1lMTA3LTQ2YWM0MDQ4M2U1OCIsInNjb3BlcyI6WyJjbGFzaCJdLCJsaW1pdHMiOlt7InRpZXIiOiJkZXZlbG9wZXIvc2lsdmVyIiwidHlwZSI6InRocm90dGxpbmcifSx7ImNpZHJzIjpbIjczLjM0LjIzNS45OSJdLCJ0eXBlIjoiY2xpZW50In1dfQ.FHWYbW4i7MNdUitqS-SNY87G9qrV0nQ9OOy7VgHvN6MIvq0BMRNUw0LjsY-1xWxec7L8L1Zx_ILmFe_Ja7XX1Q")
 
     /**
      * Singleton provider for [EventBus].
@@ -41,17 +41,15 @@ class NiceCoCModule : Logging by LoggingImpl<NiceCoCModule>() {
      */
     @Single
     fun gatewayDiscordClient(discordListener: DiscordListener): GatewayDiscordClient {
-        log.trace("Creating GatewayDiscordClient")
-
-        val client: GatewayDiscordClient = DiscordClientBuilder
-            .create("MTAwNzc0ODUyMjM1Mjg0NDg3Mw.GjBTEX.mwo3fAYPyhOxmE7JV_G5_X1t7ddD9JAMIFE46c")
-            .build()
-            .login()
-            .block()!!
+        val client: GatewayDiscordClient =
+            DiscordClient.create("MTAwNzc0ODUyMjM1Mjg0NDg3Mw.GjBTEX.mwo3fAYPyhOxmE7JV_G5_X1t7ddD9JAMIFE46c")
+                .gateway()
+                .withEventDispatcher { it.on(ReadyEvent::class.java).doOnNext(discordListener::readyEventListener) }
+                .login()
+                .block()!!
 
         client.eventDispatcher.on(ChatInputInteractionEvent::class.java)
             .subscribe(discordListener::chatInputInteractionListener)
-        client.eventDispatcher.on(ReadyEvent::class.java).subscribe(discordListener::readyEventListener)
 
         return client
     }

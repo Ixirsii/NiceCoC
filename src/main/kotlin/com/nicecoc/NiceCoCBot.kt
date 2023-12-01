@@ -68,12 +68,7 @@ class NiceCoCBot : AutoCloseable, KoinComponent, Logging by LoggingImpl<NiceCoCB
      */
     override fun run() {
         log.trace("Running...")
-
-        while (running) {
-            runBlocking {
-                delay(1000L)
-            }
-        }
+        discordApi.run()
     }
 
     /* ***************************************** Private utility functions ****************************************** */

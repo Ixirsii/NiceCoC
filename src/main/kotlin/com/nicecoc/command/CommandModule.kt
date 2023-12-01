@@ -8,11 +8,7 @@ import org.koin.core.annotation.Single
 @Module
 class CommandModule {
     @Single
-    fun commands(
-        currentWarCommand: CurrentWarCommand,
-        stopCommand: StopCommand
-    ): Map<String, Command> = mapOf(
+    fun commands(currentWarCommand: CurrentWarCommand): Map<String, Command> = mapOf(
         currentWarCommand.name to currentWarCommand,
-        stopCommand.name to stopCommand,
     )
 }
