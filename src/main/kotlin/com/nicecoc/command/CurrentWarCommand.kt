@@ -53,10 +53,13 @@ class CurrentWarCommand(
             val color: Color
             val description: String
             // TODO: Catch exceptions
-            val title: String = clashAPI.getClan(clanTag).name
+            val title: String = try {
+                clashAPI.getClan(clanTag).name
+            } catch (ex: Exception) {
+                log.error("Error getting clan name", ex)
+                "Error getting clan name"
+            }
             val war: War = clashAPI.getCurrentWar(clanTag)
-
-            war.clan?.name
 
             when (war.state) {
                 WarState.CLAN_NOT_FOUND, WarState.ACCESS_DENIED -> {

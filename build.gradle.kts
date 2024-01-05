@@ -3,76 +3,74 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version "1.9.21"
 
-    application
-    idea
-    jacoco
+    alias(libs.plugins.detekt)
+    alias(libs.plugins.dokka)
+    alias(libs.plugins.ksp)
 
-    id("com.google.devtools.ksp") version "1.9.21-1.0.15"
-    id("org.jetbrains.dokka") version "1.9.10"
+    application
+    jacoco
 }
 
 group = "com.nicecoc"
-version = "1.0-SNAPSHOT"
+version = "0.0.1"
 
 repositories {
     mavenCentral()
 }
 
-val clashApiVersion: String by project
-val discord4JVersion: String by project
-val dokkaVersion: String by project
-val guavaVersion: String by project
-val jacksonVersion: String by project
-val junitVersion: String by project
-val koinVersion: String by project
-val koinKspVersion: String by project
-val kotlinxVersion: String by project
-val logbackVersion: String by project
-val mockkVersion: String by project
-val nettyVersion: String by project
-val slf4JVersion: String by project
-
 dependencies {
+    // Detekt plugins
+    detektPlugins(libs.detekt.formatting)
+
     // KSP
-    ksp("io.insert-koin:koin-ksp-compiler:$koinKspVersion")
+    ksp(libs.ksp)
+
     // Clash API
-    implementation("io.github.lycoon:clash-api:$clashApiVersion")
+    implementation(libs.clash.api)
     // Discord4J
-    implementation("com.discord4j:discord4j-core:$discord4JVersion")
+    implementation(libs.discord4j.core)
     // Google Guava
-    implementation("com.google.guava:guava:$guavaVersion")
+    implementation(libs.guava)
     // Jackson
-    implementation("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
-    implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
-    implementation("com.fasterxml.jackson.module:jackson-module-parameter-names:$jacksonVersion")
+    implementation(libs.bundles.jackson)
     // Koin
-    implementation("io.insert-koin:koin-annotations:$koinKspVersion")
-    implementation("io.insert-koin:koin-core:$koinVersion")
+    implementation(libs.bundles.koin)
     // Kotlin coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxVersion")
+    implementation(libs.kotlinx.coroutines.core)
     // Logback
-    implementation("ch.qos.logback:logback-classic:$logbackVersion")
+    implementation(libs.logback.classic)
     // Netty
-    implementation("io.netty:netty-common:$nettyVersion")
+    implementation(libs.netty.common)
+    // SLF4J
+    implementation(libs.slf4j.api)
 
     // Kotlin Test
     testImplementation(kotlin("test"))
     // JUnit
-    testImplementation("org.junit.jupiter:junit-jupiter:$junitVersion")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
+    testImplementation(libs.bundles.junit)
+    testRuntimeOnly(libs.junit.platform.launcher)
     // Koin Test
-    testImplementation("io.insert-koin:koin-test:$koinVersion")
+    testImplementation(libs.koin.test)
 }
 
 application {
     mainClass.set("com.nicecoc.MainKt")
 }
 
+kotlin {
+    jvmToolchain(21)
+}
+
 // Use KSP Generated sources
 sourceSets.main {
     java.srcDirs("build/generated/ksp/main/kotlin")
+}
+
+tasks.detekt {
+    reports {
+        xml.required = true
+        html.required = true
+    }
 }
 
 tasks.test {

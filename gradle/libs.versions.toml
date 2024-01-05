@@ -1,0 +1,47 @@
+[versions]
+clashApi = '5.1.1'
+detekt = '1.23.4'
+discord4J = '3.2.6'
+dokka = '1.9.10'
+guava = '32.1.3-jre'
+jackson = '2.15.3'
+junit = '5.10.1'
+koin = '3.5.0'
+koinKsp = '1.3.0'
+kotlinx = '1.7.3'
+ksp = '1.9.21-1.0.15'
+logback = '1.4.14'
+netty = '4.1.81.Final'
+slf4J = '2.0.9'
+
+[libraries]
+clash-api = { module = 'io.github.lycoon:clash-api', version.ref = 'clashApi' }
+detekt-formatting = { module = 'io.gitlab.arturbosch.detekt:detekt-formatting', version.ref = 'detekt' }
+discord4j-core = { module = 'com.discord4j:discord4j-core', version.ref = 'discord4J' }
+guava = { module = 'com.google.guava:guava', version.ref = 'guava' }
+jackson-core = { module = 'com.fasterxml.jackson.core:jackson-core', version.ref = 'jackson' }
+jackson-databind = { module = 'com.fasterxml.jackson.core:jackson-databind', version.ref = 'jackson' }
+jackson-dataformat-yaml = { module = 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml', version.ref = 'jackson' }
+jackson-module-kotlin = { module = 'com.fasterxml.jackson.module:jackson-module-kotlin', version.ref = 'jackson' }
+jackson-module-parameter-names = { module = 'com.fasterxml.jackson.module:jackson-module-parameter-names', version.ref = 'jackson' }
+junit-jupiter = { module = 'org.junit.jupiter:junit-jupiter', version.ref = 'junit' }
+junit-jupiter-params = { module = 'org.junit.jupiter:junit-jupiter-params', version.ref = 'junit' }
+junit-platform-launcher = { module = 'org.junit.platform:junit-platform-launcher' }
+koin-annotations = { module = 'io.insert-koin:koin-annotations', version.ref = 'koinKsp' }
+koin-core = { module = 'io.insert-koin:koin-core', version.ref = 'koin' }
+koin-test = { module = 'io.insert-koin:koin-test', version.ref = 'koin' }
+kotlinx-coroutines-core = { module = 'org.jetbrains.kotlinx:kotlinx-coroutines-core', version.ref = 'kotlinx' }
+ksp = { module = "io.insert-koin:koin-ksp-compiler", version.ref = 'koinKsp' }
+logback-classic = { module = 'ch.qos.logback:logback-classic', version.ref = 'logback' }
+netty-common = { module = 'io.netty:netty-common', version.ref = 'netty' }
+slf4j-api = { module = 'org.slf4j:slf4j-api', version.ref = 'slf4J' }
+
+[bundles]
+jackson = ['jackson-core', 'jackson-databind', 'jackson-dataformat-yaml', 'jackson-module-kotlin', 'jackson-module-parameter-names']
+junit = ['junit-jupiter', 'junit-jupiter-params']
+koin = ['koin-annotations', 'koin-core']
+
+[plugins]
+detekt = { id = 'io.gitlab.arturbosch.detekt', version.ref = 'detekt' }
+dokka = { id = 'org.jetbrains.dokka', version.ref = 'dokka' }
+ksp = { id = 'com.google.devtools.ksp', version.ref = 'ksp' }
