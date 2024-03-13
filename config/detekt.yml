@@ -1,0 +1,103 @@
+config:
+  validation: true
+  warningsAsErrors: true
+
+comments:
+  AbsentOrWrongFileLicense:
+    active: true
+    licenseTemplateIsRegex: true
+  DeprecatedBlockTag:
+    active: true
+  EndOfSentenceFormat:
+    active: true
+  KDocReferencesNonPublicProperty:
+    active: true
+  OutdatedDocumentation:
+    active: true
+    allowParamOnConstructorProperties: true
+  UndocumentedPublicClass:
+    active: true
+  UndocumentedPublicFunction:
+    active: true
+  UndocumentedPublicProperty:
+    active: true
+
+complexity:
+  LargeClass:
+    active: false
+  LongParameterList:
+    active: false
+  ReplaceSafeCallChainWithRun:
+    active: true
+  StringLiteralDuplication:
+    active: true
+  TooManyFunctions:
+    active: false
+
+formatting:
+  ClassName:
+    active: true
+  EnumWrapping:
+    active: true
+  FunctionName:
+    active: true
+  IfElseBracing:
+    active: true
+  IfElseWrapping:
+    active: true
+  PropertyName:
+    active: true
+
+naming:
+  BooleanPropertyNaming:
+    active: true
+  LambdaParameterNaming:
+    active: true
+  NonBooleanPropertyPrefixedWithIs:
+    active: true
+
+performance:
+  CouldBeSequence:
+    active: true
+  UnnecessaryPartOfBinaryExpression:
+    active: true
+
+style:
+  BracesOnIfStatements:
+    active: true
+  BracesOnWhenStatements:
+    active: true
+  CanBeNonNullable:
+    active: true
+  CascadingCallWrapping:
+    active: true
+  ClassOrdering:
+    active: true
+  CollapsibleIfStatements:
+    active: true
+  DataClassContainsFunctions:
+    active: true
+  DataClassShouldBeImmutable:
+    active: true
+  DoubleNegativeLambda:
+    active: true
+  EqualsOnSignatureLine:
+    active: true
+  ExplicitCollectionElementAccessMethod:
+    active: true
+  ExpressionBodySyntax:
+    active: true
+  MagicNumber:
+    active: false
+  MandatoryBracesLoops:
+    active: true
+  NoTabs:
+    active: true
+  NullableBooleanCheck:
+    active: true
+  SpacingBetweenPackageAndImports:
+    active: true
+  UnusedImports:
+    active: true
+  UseEmptyCounterpart:
+    active: true
