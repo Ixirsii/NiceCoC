@@ -30,15 +30,31 @@
 
 package tech.ixirsii.module
 
+import arrow.core.Option
+import arrow.core.none
+import arrow.core.some
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
+import com.fasterxml.jackson.module.kotlin.KotlinFeature
+import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.paramnames.ParameterNamesModule
 import com.google.common.eventbus.EventBus
 import discord4j.core.DiscordClient
 import discord4j.core.GatewayDiscordClient
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent
 import discord4j.core.event.domain.lifecycle.ReadyEvent
 import org.koin.core.annotation.Module
+import org.koin.core.annotation.Named
 import org.koin.core.annotation.Single
+import tech.ixirsii.data.Config
 import tech.ixirsii.klash.client.ClashAPI
 import tech.ixirsii.listener.DiscordListener
+import tech.ixirsii.logging.Logging
+import tech.ixirsii.logging.LoggingImpl
+import java.io.File
 
 /**
  * Koin module for bot dependencies.
@@ -46,7 +62,7 @@ import tech.ixirsii.listener.DiscordListener
  * @author Ixirsii <ixirsii@ixirsii.tech>
  */
 @Module
-class NiceCoCModule {
+class NiceCoCModule : Logging by LoggingImpl<NiceCoCModule>() {
 
     /**
      * Singleton provider for [ClashAPI].
@@ -54,9 +70,23 @@ class NiceCoCModule {
      * @return [ClashAPI] singleton.
      */
     @Single
-    fun clashAPI(): ClashAPI = ClashAPI(
-        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6ImY4ZjI1MzUzLWFmYmMtNGI1MS05N2IyLWExY2EzMDI2MzFhNiIsImlhdCI6MTcwOTg1MTg2MCwic3ViIjoiZGV2ZWxvcGVyL2M1OTE4ZDhlLWIzZWEtYzViNi1lMTA3LTQ2YWM0MDQ4M2U1OCIsInNjb3BlcyI6WyJjbGFzaCJdLCJsaW1pdHMiOlt7InRpZXIiOiJkZXZlbG9wZXIvc2lsdmVyIiwidHlwZSI6InRocm90dGxpbmcifSx7ImNpZHJzIjpbIjczLjM0LjIzNS45OSJdLCJ0eXBlIjoiY2xpZW50In1dfQ._whuI-q-XyMhdSPAFyut-Ea1orfn_Dm8uy7qOWd1ylg3mU1yxcH7qMYj_aft-FLomn07o0xaT17ByciTMwwuWQ"
-    )
+    fun clashAPI(configOption: Option<Config>): Option<ClashAPI> = configOption.map { config: Config ->
+        ClashAPI(config.clashOfClansToken)
+    }
+
+    /**
+     * Singleton provider for [Config].
+     *
+     * @return [Config] singleton.
+     */
+    @Single
+    fun config(userConfigFile: File, yamlMapper: ObjectMapper): Option<Config> = if (userConfigFile.exists()) {
+        yamlMapper.readValue(userConfigFile, Config::class.java).some()
+    } else {
+        log.warn("User config file does not exist at {}", userConfigFile.absolutePath)
+
+        none()
+    }
 
     /**
      * Singleton provider for [EventBus].
@@ -72,9 +102,12 @@ class NiceCoCModule {
      * @return [GatewayDiscordClient] singleton.
      */
     @Single
-    fun gatewayDiscordClient(discordListener: DiscordListener): GatewayDiscordClient {
+    fun gatewayDiscordClient(
+        configOption: Option<Config>,
+        discordListener: DiscordListener
+    ): Option<GatewayDiscordClient> = configOption.map { config: Config ->
         val client: GatewayDiscordClient =
-            DiscordClient.create("MTAwNzc0ODUyMjM1Mjg0NDg3Mw.GjBTEX.mwo3fAYPyhOxmE7JV_G5_X1t7ddD9JAMIFE46c")
+            DiscordClient.create(config.discordToken)
                 .gateway()
                 .withEventDispatcher { it.on(ReadyEvent::class.java).doOnNext(discordListener::readyEventListener) }
                 .login()
@@ -83,6 +116,64 @@ class NiceCoCModule {
         client.eventDispatcher.on(ChatInputInteractionEvent::class.java, discordListener::chatInputInteractionListener)
             .subscribe()
 
-        return client
+        client
+    }
+
+    /**
+     * Singleton provider for the default config.yaml resource path.
+     *
+     * @return the default config.yaml resource path.
+     */
+    @Named("resourceFilePath")
+    @Single
+    fun resourceFilePath(): String = CONFIG_FILE_NAME
+
+    /**
+     * Singleton provider for the user's config.yaml file.
+     *
+     * @return the user's config.yaml file.
+     */
+    @Single
+    fun userConfigFile(@Named("userConfigFilePath") path: String): File = File(path)
+
+    /**
+     * Singleton provider for the user's config.yaml file path.
+     *
+     * @return the user's config.yaml file path.
+     */
+    @Named("userConfigFilePath")
+    @Single
+    fun userConfigFilePath(): String = CONFIG_DIRECTORY + CONFIG_FILE_NAME
+
+    /**
+     * Singleton provider for [ObjectMapper].
+     *
+     * @return [ObjectMapper] singleton.
+     */
+    @Single
+    fun yamlMapper(): ObjectMapper = ObjectMapper(YAMLFactory())
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true)
+        .registerModule(ParameterNamesModule(JsonCreator.Mode.PROPERTIES))
+        .registerModule(Jdk8Module())
+        .registerModule(
+            KotlinModule.Builder()
+                .configure(KotlinFeature.NullToEmptyCollection, true)
+                .configure(KotlinFeature.NullToEmptyMap, true)
+                .configure(KotlinFeature.NullIsSameAsDefault, true)
+                .build()
+        )
+
+    /* *************************************** Private utility functions **************************************** */
+
+    private companion object {
+        /**
+         * Bot configuration directory.
+         */
+        const val CONFIG_DIRECTORY = "config/"
+
+        /**
+         * Default config resource file path.
+         */
+        private const val CONFIG_FILE_NAME: String = "config.yaml"
     }
 }

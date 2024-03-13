@@ -30,9 +30,11 @@
 
 package tech.ixirsii.command
 
+import arrow.core.Option
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Single
+import tech.ixirsii.klash.client.ClashAPI
 
 /**
  * Koin module for bot commands.
@@ -44,9 +46,26 @@ import org.koin.core.annotation.Single
 class CommandModule {
     /**
      * Singleton provider for all bot commands.
+     *
+     * @return Map of command names to commands.
      */
     @Single
-    fun commands(currentWarCommand: CurrentWarCommand): Set<Command> = setOf(
-        currentWarCommand,
-    )
+    fun commands(currentWarCommandOption: Option<CurrentWarCommand>): Map<String, Command> {
+        val commands = mutableMapOf<String, Command>()
+
+        currentWarCommandOption.onSome { currentWarCommand: CurrentWarCommand ->
+            commands[currentWarCommand.name] = currentWarCommand
+        }
+
+        return commands
+    }
+
+    /**
+     * Singleton provider for the current war command.
+     *
+     * @return Option of CurrentWarCommand.
+     */
+    @Single
+    fun currentWarCommand(clashAPIOption: Option<ClashAPI>): Option<CurrentWarCommand> =
+        clashAPIOption.map { clashAPI: ClashAPI -> CurrentWarCommand(clashAPI) }
 }

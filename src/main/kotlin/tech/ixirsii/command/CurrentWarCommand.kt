@@ -36,9 +36,8 @@ import discord4j.core.`object`.entity.User
 import discord4j.core.spec.EmbedCreateSpec
 import discord4j.discordjson.json.ApplicationCommandRequest
 import discord4j.rest.util.Color
-import org.koin.core.annotation.Single
 import reactor.core.publisher.Mono
-import reactor.util.function.Tuple3
+import reactor.util.function.Tuple2
 import tech.ixirsii.data.BLUE
 import tech.ixirsii.data.GREEN
 import tech.ixirsii.data.LIGHT_BLUE
@@ -47,7 +46,6 @@ import tech.ixirsii.data.RED
 import tech.ixirsii.data.YELLOW
 import tech.ixirsii.klash.client.ClashAPI
 import tech.ixirsii.klash.error.ClashAPIError
-import tech.ixirsii.klash.types.clan.Clan
 import tech.ixirsii.klash.types.war.State
 import tech.ixirsii.klash.types.war.War
 import tech.ixirsii.logging.Logging
@@ -58,7 +56,6 @@ import tech.ixirsii.logging.LoggingImpl
  *
  * @author Ixirsii <ixirsii@ixirsii.tech>
  */
-@Single
 class CurrentWarCommand(private val clashAPI: ClashAPI) : Command, Logging by LoggingImpl<CurrentWarCommand>() {
     /**
      * [ApplicationCommandRequest] to register the command with Discord APIs.
@@ -75,85 +72,87 @@ class CurrentWarCommand(private val clashAPI: ClashAPI) : Command, Logging by Lo
     override val name: String = "current_war"
 
     /**
-     * Midwest Warrior Clan tag.
-     */
-    private val clanTag: String = "2Q82UJVY"
-
-    /**
      * Function which can be registered to listen to chat input interaction events.
      *
      * @param event Chat command event.
      */
     override fun listener(event: ChatInputInteractionEvent): Mono<Any> {
+        log.trace("Received command: {}", event.commandName)
+
         if (event.commandName != name) {
             return Mono.empty()
         }
 
-        return event.deferReply().then(
-            CurrentWarEvent(clashAPI.clan(clanTag), event.client.self, clashAPI.currentWar(clanTag))
-                .buildEmbed()
-                .map { embed: EmbedCreateSpec ->
-                    event.editReply().withEmbeds(embed)
-                }
-        )
+        return event.deferReply()
+            .then(buildEmbed(event.client.self, clashAPI.currentWar(MIDWEST_WARRIOR)))
+            .map { embed: EmbedCreateSpec -> event.editReply().withEmbeds(embed) }
     }
 
     /* *************************************** Private utility functions **************************************** */
 
-    private class CurrentWarEvent(
-        private val clanMono: Mono<Either<ClashAPIError, Clan>>,
-        private val userMono: Mono<User>,
-        private val warMono: Mono<Either<ClashAPIError, War>>,
-    ) {
+    private fun buildEmbed(
+        userMono: Mono<User>,
+        warMono: Mono<Either<ClashAPIError, War>>,
+    ): Mono<EmbedCreateSpec> = Mono.zip(userMono, warMono)
+        .map { tuple: Tuple2<User, Either<ClashAPIError, War>> ->
+            val color: Color
+            val description: String
+            val title: String
 
-        fun buildEmbed(): Mono<EmbedCreateSpec> {
-            return Mono.zip(clanMono, userMono, warMono)
-                .map { tuple: Tuple3<Either<ClashAPIError, Clan>, User, Either<ClashAPIError, War>> ->
-                    val color: Color
-                    val description: String
-                    val opponent: String = tuple.t3.map { war: War -> war.opponent?.name }.getOrNull() ?: "Unknown"
+            when (tuple.t2.map { war: War -> war.state }) {
+                Either.Right(State.WAR), Either.Right(State.IN_WAR) -> {
+                    val opponent: String = tuple.t2.map { war: War -> war.opponent?.name }.getOrNull() ?: "Unknown"
 
-                    when (tuple.t3.map { war: War -> war.state }) {
-                        Either.Right(State.WAR), Either.Right(State.IN_WAR) -> {
-                            color = YELLOW
-                            description = "War day against $opponent"
-                        }
-
-                        Either.Right(State.PREPARATION) -> {
-                            color = GREEN
-                            description = "Prep day against $opponent"
-                        }
-
-                        Either.Right(State.IN_MATCHMAKING),
-                        Either.Right(State.ENTER_WAR),
-                        Either.Right(State.MATCHED) -> {
-                            color = LIGHT_BLUE
-                            description = "Searching for war"
-                        }
-
-                        Either.Right(State.NOT_IN_WAR) -> {
-                            color = BLUE
-                            description = "No active war"
-                        }
-
-                        Either.Right(State.ENDED) -> {
-                            color = ORANGE
-                            description = "War has ended"
-                        }
-
-                        else -> {
-                            color = RED
-                            description = "Error getting war status"
-                        }
-                    }
-
-                    EmbedCreateSpec.builder()
-                        .author(tuple.t2.username, "https://github.com/Ixirsii/NiceCoC", tuple.t2.avatarUrl)
-                        .color(color)
-                        .description(description)
-                        .title(tuple.t1.map { clan: Clan -> clan.name }.getOrNull() ?: "Clan name")
-                        .build()
+                    color = YELLOW
+                    description = "War day against $opponent"
+                    title = tuple.t2.map { war: War -> war.clan?.name }.getOrNull() ?: "Clan name"
                 }
+
+                Either.Right(State.PREPARATION) -> {
+                    val opponent: String = tuple.t2.map { war: War -> war.opponent?.name }.getOrNull() ?: "Unknown"
+
+                    color = GREEN
+                    description = "Prep day against $opponent"
+                    title = tuple.t2.map { war: War -> war.clan?.name }.getOrNull() ?: "Clan name"
+                }
+
+                Either.Right(State.IN_MATCHMAKING), Either.Right(State.ENTER_WAR), Either.Right(State.MATCHED) -> {
+                    color = LIGHT_BLUE
+                    description = "Searching for war"
+                    title = "Matchmaking"
+                }
+
+                Either.Right(State.NOT_IN_WAR) -> {
+                    color = BLUE
+                    description = "No active war"
+                    title = "Not in war"
+                }
+
+                Either.Right(State.ENDED) -> {
+                    color = ORANGE
+                    description = "War has ended"
+                    title = "War ended"
+                }
+
+                else -> {
+                    color = RED
+                    description = "Error getting war status"
+                    title = "Error"
+                }
+            }
+
+            EmbedCreateSpec.builder()
+                .author(tuple.t1.username, "https://github.com/Ixirsii/NiceCoC", tuple.t1.avatarUrl)
+                .color(color)
+                .description(description)
+                .title(title)
+                .build()
         }
+
+    private companion object {
+        /**
+         * Midwest Warrior Clan tag.
+         */
+        private const val MIDWEST_WARRIOR: String = "2Q82UJVY"
     }
 }

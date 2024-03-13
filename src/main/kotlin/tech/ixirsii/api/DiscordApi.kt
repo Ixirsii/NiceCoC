@@ -32,7 +32,6 @@ package tech.ixirsii.api
 
 import discord4j.core.GatewayDiscordClient
 import discord4j.rest.service.ApplicationService
-import org.koin.core.annotation.Single
 import tech.ixirsii.command.Command
 import tech.ixirsii.logging.Logging
 import tech.ixirsii.logging.LoggingImpl
@@ -42,7 +41,6 @@ import tech.ixirsii.logging.LoggingImpl
  *
  * @author Ixirsii <ixirsii@ixirsii.tech>
  */
-@Single
 class DiscordApi(
     /**
      * Discord4J gateway client.
@@ -51,7 +49,7 @@ class DiscordApi(
     /**
      * All bot commands.
      */
-    private val commands: Set<Command>,
+    private val commands: Map<String, Command>,
 ) : AutoCloseable, Logging by LoggingImpl<DiscordApi>(), Runnable {
 
     /**
@@ -63,7 +61,7 @@ class DiscordApi(
         val applicationId: Long = client.restClient.applicationId.block() ?: 0L
         val applicationService: ApplicationService = client.restClient.applicationService
 
-        commands.forEach { command: Command ->
+        commands.forEach { (_, command: Command) ->
             applicationService.createGuildApplicationCommand(applicationId, IXI_BOT_ID, command.request).subscribe()
             applicationService.createGuildApplicationCommand(applicationId, MIDWEST_WARRIOR_ID, command.request)
                 .subscribe()
@@ -83,6 +81,8 @@ class DiscordApi(
      * Wait for the client to disconnect.
      */
     override fun run() {
+        log.trace("Waiting for Discord client to disconnect")
+
         client.onDisconnect().block()
     }
 

@@ -30,14 +30,20 @@
 
 package tech.ixirsii
 
+import arrow.core.Option
 import com.google.common.eventbus.EventBus
 import com.google.common.eventbus.Subscribe
+import com.google.common.io.Resources
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.koin.core.qualifier.named
 import tech.ixirsii.api.DiscordApi
+import tech.ixirsii.data.Config
 import tech.ixirsii.event.StopBotEvent
 import tech.ixirsii.logging.Logging
 import tech.ixirsii.logging.LoggingImpl
+import java.io.File
+import java.io.IOException
 import kotlin.system.exitProcess
 
 /**
@@ -47,14 +53,29 @@ import kotlin.system.exitProcess
  */
 class NiceCoCBot : AutoCloseable, KoinComponent, Logging by LoggingImpl<NiceCoCBot>(), Runnable {
     /**
+     * Bot configuration file.
+     */
+    private val configFile: File by inject()
+
+    /**
+     * Bot configuration.
+     */
+    private val configOption: Option<Config> by inject()
+
+    /**
      * Discord API interface.
      */
-    private val discordApi: DiscordApi by inject()
+    private val discordApiOption: Option<DiscordApi> by inject()
 
     /**
      * Internal event bus.
      */
     private val eventBus: EventBus by inject()
+
+    /**
+     * Default config resource file.
+     */
+    private val resourceFilePath: String by inject(named("resourceFilePath"))
 
     /**
      * Internal event bus subscribers.
@@ -66,7 +87,7 @@ class NiceCoCBot : AutoCloseable, KoinComponent, Logging by LoggingImpl<NiceCoCB
      */
     override fun close() {
         log.trace("Cleaning up...")
-        discordApi.close()
+        discordApiOption.onSome { discordApi: DiscordApi -> discordApi.close() }
     }
 
     /**
@@ -74,9 +95,12 @@ class NiceCoCBot : AutoCloseable, KoinComponent, Logging by LoggingImpl<NiceCoCB
      */
     fun init() {
         log.trace("Initializing...")
-        discordApi.init()
-        // subscribers.forEach(eventBus::register)
-        eventBus.register(this)
+        configOption.onNone { generateUserConfig(configFile, resourceFilePath) }
+            .onSome {
+                // subscribers.forEach(eventBus::register)
+                eventBus.register(this)
+            }
+        discordApiOption.onSome { discordApi: DiscordApi -> discordApi.init() }
     }
 
     /**
@@ -89,7 +113,7 @@ class NiceCoCBot : AutoCloseable, KoinComponent, Logging by LoggingImpl<NiceCoCB
         log.trace("Stopping {{ gracefully: {} }}", event.isGraceful)
 
         if (event.isGraceful) {
-            discordApi.close()
+            discordApiOption.onSome { discordApi: DiscordApi -> discordApi.close() }
         } else {
             exitProcess(1)
         }
@@ -100,8 +124,38 @@ class NiceCoCBot : AutoCloseable, KoinComponent, Logging by LoggingImpl<NiceCoCB
      */
     override fun run() {
         log.trace("Running...")
-        discordApi.run()
+
+        discordApiOption.onSome { discordApi: DiscordApi -> discordApi.run() }
     }
 
     /* *************************************** Private utility functions **************************************** */
+
+    /**
+     * Write default configuration file.
+     *
+     * @param configFile User's config [File].
+     * @param resourceFilePath File path to the default config resource file.
+     */
+    private fun generateUserConfig(configFile: File, resourceFilePath: String) {
+        try {
+            if (!configFile.parentFile.exists()) {
+                configFile.parentFile.mkdirs()
+            }
+
+            configFile.writeBytes(Resources.toByteArray(Resources.getResource(resourceFilePath)))
+
+            log.info(
+                "Generated new user config file at \"{}\". Please customize your configuration then restart the bot",
+                configFile.absolutePath
+            )
+        } catch (ex: IllegalArgumentException) {
+            log.error("Failed to get resource {}", resourceFilePath, ex)
+        } catch (ex: IOException) {
+            log.error(
+                "Encountered exception while trying to write new user config file to \"{}\"",
+                configFile.absolutePath,
+                ex
+            )
+        }
+    }
 }

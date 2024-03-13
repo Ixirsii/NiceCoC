@@ -28,29 +28,20 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package tech.ixirsii.api
-
-import arrow.core.Option
-import discord4j.core.GatewayDiscordClient
-import org.koin.core.annotation.ComponentScan
-import org.koin.core.annotation.Module
-import org.koin.core.annotation.Single
-import tech.ixirsii.command.Command
+package tech.ixirsii.data
 
 /**
- * Koin module for API implementations.
+ * Bot configuration.
  *
  * @author Ixirsii <ixirsii@ixirsii.tech>
  */
-@ComponentScan("tech.ixirsii.api")
-@Module
-class ApiModule {
+data class Config(
     /**
-     * Singleton provider for the Discord API.
-     *
-     * @return The Discord API.
+     * Clash of Clans developer token.
      */
-    @Single
-    fun discordApi(clientOption: Option<GatewayDiscordClient>, commands: Map<String, Command>): Option<DiscordApi> =
-        clientOption.map { client: GatewayDiscordClient -> DiscordApi(client, commands) }
-}
+    val clashOfClansToken: String,
+    /**
+     * Discord API token.
+     */
+    val discordToken: String,
+)
