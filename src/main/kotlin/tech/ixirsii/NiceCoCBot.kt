@@ -60,12 +60,12 @@ class NiceCoCBot : AutoCloseable, KoinComponent, Logging by LoggingImpl<NiceCoCB
     /**
      * Bot configuration.
      */
-    private val configOption: Option<Config> by inject()
+    private val configOption: Option<Config> by inject(named("configOption"))
 
     /**
      * Discord API interface.
      */
-    private val discordApiOption: Option<DiscordApi> by inject()
+    private val discordApiOption: Option<DiscordApi> by inject(named("discordAPIOption"))
 
     /**
      * Internal event bus.
@@ -86,7 +86,7 @@ class NiceCoCBot : AutoCloseable, KoinComponent, Logging by LoggingImpl<NiceCoCB
      * Clean up resources.
      */
     override fun close() {
-        log.trace("Cleaning up...")
+        log.trace("Cleaning up bot")
         discordApiOption.onSome { discordApi: DiscordApi -> discordApi.close() }
     }
 
@@ -94,7 +94,7 @@ class NiceCoCBot : AutoCloseable, KoinComponent, Logging by LoggingImpl<NiceCoCB
      * Initialize the bot.
      */
     fun init() {
-        log.trace("Initializing...")
+        log.trace("Initializing bot")
         configOption.onNone { generateUserConfig(configFile, resourceFilePath) }
             .onSome {
                 // subscribers.forEach(eventBus::register)
@@ -123,7 +123,7 @@ class NiceCoCBot : AutoCloseable, KoinComponent, Logging by LoggingImpl<NiceCoCB
      * Run the bot.
      */
     override fun run() {
-        log.trace("Running...")
+        log.trace("Running bot")
 
         discordApiOption.onSome { discordApi: DiscordApi -> discordApi.run() }
     }
@@ -137,6 +137,8 @@ class NiceCoCBot : AutoCloseable, KoinComponent, Logging by LoggingImpl<NiceCoCB
      * @param resourceFilePath File path to the default config resource file.
      */
     private fun generateUserConfig(configFile: File, resourceFilePath: String) {
+        log.trace("Generating new user config file")
+
         try {
             if (!configFile.parentFile.exists()) {
                 configFile.parentFile.mkdirs()

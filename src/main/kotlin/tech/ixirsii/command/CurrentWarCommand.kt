@@ -76,17 +76,9 @@ class CurrentWarCommand(private val clashAPI: ClashAPI) : Command, Logging by Lo
      *
      * @param event Chat command event.
      */
-    override fun listener(event: ChatInputInteractionEvent): Mono<Any> {
-        log.trace("Received command: {}", event.commandName)
-
-        if (event.commandName != name) {
-            return Mono.empty()
-        }
-
-        return event.deferReply()
-            .then(buildEmbed(event.client.self, clashAPI.currentWar(MIDWEST_WARRIOR)))
-            .map { embed: EmbedCreateSpec -> event.editReply().withEmbeds(embed) }
-    }
+    override fun listener(event: ChatInputInteractionEvent): Mono<Any> = event.deferReply()
+        .then(buildEmbed(event.client.self, clashAPI.currentWar(MIDWEST_WARRIOR)))
+        .flatMap { embed: EmbedCreateSpec -> event.editReply().withEmbeds(embed) }
 
     /* *************************************** Private utility functions **************************************** */
 
@@ -95,6 +87,8 @@ class CurrentWarCommand(private val clashAPI: ClashAPI) : Command, Logging by Lo
         warMono: Mono<Either<ClashAPIError, War>>,
     ): Mono<EmbedCreateSpec> = Mono.zip(userMono, warMono)
         .map { tuple: Tuple2<User, Either<ClashAPIError, War>> ->
+            log.trace("Building war status embed")
+
             val color: Color
             val description: String
             val title: String

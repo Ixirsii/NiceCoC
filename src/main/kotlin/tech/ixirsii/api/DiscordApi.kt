@@ -32,6 +32,7 @@ package tech.ixirsii.api
 
 import discord4j.core.GatewayDiscordClient
 import discord4j.rest.service.ApplicationService
+import reactor.core.publisher.Mono
 import tech.ixirsii.command.Command
 import tech.ixirsii.logging.Logging
 import tech.ixirsii.logging.LoggingImpl
@@ -62,9 +63,18 @@ class DiscordApi(
         val applicationService: ApplicationService = client.restClient.applicationService
 
         commands.forEach { (_, command: Command) ->
-            applicationService.createGuildApplicationCommand(applicationId, IXI_BOT_ID, command.request).subscribe()
-            applicationService.createGuildApplicationCommand(applicationId, MIDWEST_WARRIOR_ID, command.request)
+            applicationService.createGuildApplicationCommand(applicationId, IXI_BOT_ID, command.request)
+                .onErrorResume { throwable: Throwable ->
+                    log.error("Failed to add command \"{}\" to IxiBot server", command.name, throwable)
+                    Mono.empty()
+                }
                 .subscribe()
+//            applicationService.createGuildApplicationCommand(applicationId, MIDWEST_WARRIOR_ID, command.request)
+//                .onErrorResume { throwable: Throwable ->
+//                    log.error("Failed to add command \"{}\" to Midwest Warrior server", command.name, throwable)
+//                    Mono.empty()
+//                }
+//                .subscribe()
         }
     }
 
@@ -97,6 +107,6 @@ class DiscordApi(
         /**
          * Midwest Warrior guild ID.
          */
-        private const val MIDWEST_WARRIOR_ID: Long = 1073848977637789707L
+//        private const val MIDWEST_WARRIOR_ID: Long = 1073848977637789707L
     }
 }

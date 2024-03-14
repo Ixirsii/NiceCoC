@@ -44,7 +44,7 @@ import tech.ixirsii.module.NiceCoCModule
  */
 fun main() {
     startKoin {
-        modules(ApiModule().module, CommandModule().module, NiceCoCModule().module, ListenerModule().module)
+        modules(ApiModule().module, CommandModule().module, ListenerModule().module, NiceCoCModule().module)
     }
 
     NiceCoCBot().use {

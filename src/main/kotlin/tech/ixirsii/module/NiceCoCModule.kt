@@ -69,16 +69,17 @@ class NiceCoCModule : Logging by LoggingImpl<NiceCoCModule>() {
      *
      * @return [ClashAPI] singleton.
      */
+    @Named("clashAPIOption")
     @Single
-    fun clashAPI(configOption: Option<Config>): Option<ClashAPI> = configOption.map { config: Config ->
-        ClashAPI(config.clashOfClansToken)
-    }
+    fun clashAPI(@Named("configOption") configOption: Option<Config>): Option<ClashAPI> =
+        configOption.map { config: Config -> ClashAPI(config.clashOfClansToken) }
 
     /**
      * Singleton provider for [Config].
      *
      * @return [Config] singleton.
      */
+    @Named("configOption")
     @Single
     fun config(userConfigFile: File, yamlMapper: ObjectMapper): Option<Config> = if (userConfigFile.exists()) {
         yamlMapper.readValue(userConfigFile, Config::class.java).some()
@@ -101,10 +102,11 @@ class NiceCoCModule : Logging by LoggingImpl<NiceCoCModule>() {
      *
      * @return [GatewayDiscordClient] singleton.
      */
+    @Named("clientOption")
     @Single
     fun gatewayDiscordClient(
-        configOption: Option<Config>,
-        discordListener: DiscordListener
+        @Named("configOption") configOption: Option<Config>,
+        discordListener: DiscordListener,
     ): Option<GatewayDiscordClient> = configOption.map { config: Config ->
         val client: GatewayDiscordClient =
             DiscordClient.create(config.discordToken)

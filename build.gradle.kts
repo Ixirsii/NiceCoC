@@ -37,10 +37,14 @@ dependencies {
     implementation(libs.bundles.koin)
     // Kotlin coroutines
     implementation(libs.kotlinx.coroutines.core)
+    // Kotlin serialization
+    implementation(libs.kotlinx.serialization.json)
     // Logback
     implementation(libs.logback.classic)
     // Netty
     implementation(libs.netty.common)
+    // OkHttp
+    implementation(libs.okhttp)
     // SLF4J
     implementation(libs.slf4j.api)
 

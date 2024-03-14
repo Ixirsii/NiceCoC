@@ -34,6 +34,7 @@ import arrow.core.Option
 import discord4j.core.GatewayDiscordClient
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Module
+import org.koin.core.annotation.Named
 import org.koin.core.annotation.Single
 import tech.ixirsii.command.Command
 
@@ -50,7 +51,10 @@ class ApiModule {
      *
      * @return The Discord API.
      */
+    @Named("discordAPIOption")
     @Single
-    fun discordApi(clientOption: Option<GatewayDiscordClient>, commands: Map<String, Command>): Option<DiscordApi> =
-        clientOption.map { client: GatewayDiscordClient -> DiscordApi(client, commands) }
+    fun discordApi(
+        @Named("clientOption") clientOption: Option<GatewayDiscordClient>,
+        commands: Map<String, Command>,
+    ): Option<DiscordApi> = clientOption.map { client: GatewayDiscordClient -> DiscordApi(client, commands) }
 }
