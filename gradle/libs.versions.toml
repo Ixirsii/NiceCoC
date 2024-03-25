@@ -15,7 +15,7 @@ ksp = '1.9.23-1.0.19'
 logback = '1.4.14'
 netty = '4.1.108.Final'
 okhttp = '5.0.0-alpha.12'
-slf4J = '2.0.9'
+slf4J = '2.0.12'
 
 [libraries]
 arrow-core = { module = 'io.arrow-kt:arrow-core', version.ref = 'arrow' }
