@@ -87,6 +87,8 @@ style:
     active: true
   ExpressionBodySyntax:
     active: true
+  ForbiddenComment:
+    active: false
   MagicNumber:
     active: false
   MandatoryBracesLoops:
