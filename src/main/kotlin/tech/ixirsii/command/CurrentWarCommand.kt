@@ -30,26 +30,21 @@
 
 package tech.ixirsii.command
 
-import arrow.core.Either
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent
-import discord4j.core.`object`.entity.User
+import discord4j.core.`object`.command.ApplicationCommandInteractionOption
+import discord4j.core.`object`.command.ApplicationCommandInteractionOptionValue
+import discord4j.core.`object`.command.ApplicationCommandOption
 import discord4j.core.spec.EmbedCreateSpec
+import discord4j.discordjson.json.ApplicationCommandOptionChoiceData
+import discord4j.discordjson.json.ApplicationCommandOptionData
 import discord4j.discordjson.json.ApplicationCommandRequest
-import discord4j.rest.util.Color
 import reactor.core.publisher.Mono
-import reactor.util.function.Tuple2
-import tech.ixirsii.data.BLUE
-import tech.ixirsii.data.GREEN
-import tech.ixirsii.data.LIGHT_BLUE
-import tech.ixirsii.data.ORANGE
-import tech.ixirsii.data.RED
-import tech.ixirsii.data.YELLOW
+import tech.ixirsii.data.Clan
+import tech.ixirsii.function.CurrentWarFunction
 import tech.ixirsii.klash.client.ClashAPI
-import tech.ixirsii.klash.error.ClashAPIError
-import tech.ixirsii.klash.types.war.State
-import tech.ixirsii.klash.types.war.War
 import tech.ixirsii.logging.Logging
 import tech.ixirsii.logging.LoggingImpl
+import kotlin.jvm.optionals.getOrElse
 
 /**
  * Command to get info about the current war.
@@ -64,6 +59,26 @@ class CurrentWarCommand(private val clashAPI: ClashAPI) : Command, Logging by Lo
         get() = ApplicationCommandRequest.builder()
             .name(name)
             .description("Get current war information")
+            .addOption(
+                ApplicationCommandOptionData.builder()
+                    .name(CLAN_OPTION_NAME)
+                    .description("Clan to get war info for")
+                    .type(ApplicationCommandOption.Type.STRING.value)
+                    .addChoice(
+                        ApplicationCommandOptionChoiceData.builder()
+                            .name(Clan.MIDWEST_WARRIOR.clanName)
+                            .value(Clan.MIDWEST_WARRIOR.tag)
+                            .build()
+                    )
+                    .addChoice(
+                        ApplicationCommandOptionChoiceData.builder()
+                            .name(Clan.JJK.clanName)
+                            .value(Clan.JJK.tag)
+                            .build()
+                    )
+                    .required(false)
+                    .build()
+            )
             .build()
 
     /**
@@ -77,76 +92,20 @@ class CurrentWarCommand(private val clashAPI: ClashAPI) : Command, Logging by Lo
      * @param event Chat command event.
      */
     override fun listener(event: ChatInputInteractionEvent): Mono<Any> = event.deferReply()
-        .then(buildEmbed(event.client.self, clashAPI.currentWar(MIDWEST_WARRIOR)))
-        .flatMap { embed: EmbedCreateSpec -> event.editReply().withEmbeds(embed) }
+        .then(
+            Mono.just(
+                event.getOption(CLAN_OPTION_NAME)
+                    .flatMap(ApplicationCommandInteractionOption::getValue)
+                    .map(ApplicationCommandInteractionOptionValue::asString)
+                    .getOrElse { Clan.MIDWEST_WARRIOR.tag }
+            )
+        )
+        .flatMap { clanTag: String -> CurrentWarFunction(clanTag, clashAPI).getCurrentWarEmbeds(event.client.self) }
+        .flatMap { embeds: List<EmbedCreateSpec> -> event.editReply().withEmbedsOrNull(embeds) }
 
     /* *************************************** Private utility functions **************************************** */
 
-    private fun buildEmbed(
-        userMono: Mono<User>,
-        warMono: Mono<Either<ClashAPIError, War>>,
-    ): Mono<EmbedCreateSpec> = Mono.zip(userMono, warMono)
-        .map { tuple: Tuple2<User, Either<ClashAPIError, War>> ->
-            log.trace("Building war status embed")
-
-            val color: Color
-            val description: String
-            val title: String
-
-            when (tuple.t2.map { war: War -> war.state }) {
-                Either.Right(State.WAR), Either.Right(State.IN_WAR) -> {
-                    val opponent: String = tuple.t2.map { war: War -> war.opponent?.name }.getOrNull() ?: "Unknown"
-
-                    color = YELLOW
-                    description = "War day against $opponent"
-                    title = tuple.t2.map { war: War -> war.clan?.name }.getOrNull() ?: "Clan name"
-                }
-
-                Either.Right(State.PREPARATION) -> {
-                    val opponent: String = tuple.t2.map { war: War -> war.opponent?.name }.getOrNull() ?: "Unknown"
-
-                    color = GREEN
-                    description = "Prep day against $opponent"
-                    title = tuple.t2.map { war: War -> war.clan?.name }.getOrNull() ?: "Clan name"
-                }
-
-                Either.Right(State.IN_MATCHMAKING), Either.Right(State.ENTER_WAR), Either.Right(State.MATCHED) -> {
-                    color = LIGHT_BLUE
-                    description = "Searching for war"
-                    title = "Matchmaking"
-                }
-
-                Either.Right(State.NOT_IN_WAR) -> {
-                    color = BLUE
-                    description = "No active war"
-                    title = "Not in war"
-                }
-
-                Either.Right(State.ENDED) -> {
-                    color = ORANGE
-                    description = "War has ended"
-                    title = "War ended"
-                }
-
-                else -> {
-                    color = RED
-                    description = "Error getting war status"
-                    title = "Error"
-                }
-            }
-
-            EmbedCreateSpec.builder()
-                .author(tuple.t1.username, "https://github.com/Ixirsii/NiceCoC", tuple.t1.avatarUrl)
-                .color(color)
-                .description(description)
-                .title(title)
-                .build()
-        }
-
     private companion object {
-        /**
-         * Midwest Warrior Clan tag.
-         */
-        private const val MIDWEST_WARRIOR: String = "2Q82UJVY"
+        private const val CLAN_OPTION_NAME = "clan"
     }
 }
