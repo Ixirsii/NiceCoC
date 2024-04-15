@@ -13,7 +13,7 @@ kotlinx = '1.8.0'
 kotlinxSerialization = '1.6.3'
 ksp = '1.9.23-1.0.20'
 logback = '1.5.3'
-netty = '4.1.108.Final'
+netty = '4.1.109.Final'
 okhttp = '5.0.0-alpha.12'
 slf4J = '2.0.12'
 
