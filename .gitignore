@@ -45,3 +45,10 @@ Desktop.ini
 # Application resources
 log
 config/config.yaml
+
+# ############################################################################ #
+#                                  Exceptions                                  #
+# ############################################################################ #
+
+# Gradle Wrapper
+!gradle-wrapper.jar
