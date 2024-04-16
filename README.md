@@ -2,7 +2,7 @@
 
 ![NiceCoC](NiceCoC.png)
 
-![Discord Shield](https://discordapp.com/api/guilds/452233740408717313/widget.png?style=shield)
+[![Discord Shield](https://discordapp.com/api/guilds/452233740408717313/widget.png?style=shield)](https://discord.gg/KTgshSbEUU)
 [![BSD 3-Clause License](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)](https://opensource.org/license/bsd-3-clause)
 [![GitHub release](https://img.shields.io/github/release/Ixirsii/NiceCoC.svg?style=flat)](https://github.com/Ixirsii/NiceCoC/releases/latest)
 

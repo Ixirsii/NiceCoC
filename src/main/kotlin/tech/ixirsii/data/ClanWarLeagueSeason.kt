@@ -44,13 +44,13 @@ import tech.ixirsii.klash.types.war.War
  * @author Ixirsii <ixirsii@ixirsii.tech>
  */
 class ClanWarLeagueSeason(
-    private val war1: War?,
-    private val war2: War?,
-    private val war3: War?,
-    private val war4: War?,
-    private val war5: War?,
-    private val war6: War?,
-    private val war7: War?,
+    war1: War?,
+    war2: War?,
+    war3: War?,
+    war4: War?,
+    war5: War?,
+    war6: War?,
+    war7: War?,
 ) {
     /**
      * Currently active CWL war if any.
@@ -73,6 +73,11 @@ class ClanWarLeagueSeason(
         } else {
             none()
         }
+
+    /**
+     * List of all wars in the season.
+     */
+    val wars: List<War> = listOfNotNull(war1, war2, war3, war4, war5, war6, war7)
 
     /**
      * Get [ClanWarLeagueSeason] from a group of rounds.

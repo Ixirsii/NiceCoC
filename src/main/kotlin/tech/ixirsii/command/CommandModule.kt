@@ -30,12 +30,14 @@
 
 package tech.ixirsii.command
 
-import arrow.core.Option
+import discord4j.core.`object`.command.ApplicationCommandOption
+import discord4j.discordjson.json.ApplicationCommandOptionChoiceData
+import discord4j.discordjson.json.ApplicationCommandOptionData
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Module
-import org.koin.core.annotation.Named
 import org.koin.core.annotation.Single
-import tech.ixirsii.klash.client.ClashAPI
+import tech.ixirsii.command.Command.Companion.CLAN_OPTION_NAME
+import tech.ixirsii.data.Clan
 
 /**
  * Koin module for bot commands.
@@ -46,30 +48,39 @@ import tech.ixirsii.klash.client.ClashAPI
 @Module
 class CommandModule {
     /**
-     * Singleton provider for all bot commands.
-     *
+     * @return Clan option for commands.
+     */
+    @Single
+    fun clanOption(): ApplicationCommandOptionData = ApplicationCommandOptionData.builder()
+        .name(CLAN_OPTION_NAME)
+        .description("Clan to get war info for")
+        .type(ApplicationCommandOption.Type.STRING.value)
+        .addChoice(
+            ApplicationCommandOptionChoiceData.builder()
+                .name(Clan.MIDWEST_WARRIOR.clanName)
+                .value(Clan.MIDWEST_WARRIOR.tag)
+                .build()
+        )
+        .addChoice(
+            ApplicationCommandOptionChoiceData.builder()
+                .name(Clan.JJK.clanName)
+                .value(Clan.JJK.tag)
+                .build()
+        )
+        .required(false)
+        .build()
+
+    /**
      * @return Map of command names to commands.
      */
     @Single
     fun commands(
-        @Named("currentWarCommandOption") currentWarCommandOption: Option<CurrentWarCommand>,
+        clanWarLeagueCommand: ClanWarLeagueCommand,
+        currentWarCommand: CurrentWarCommand,
     ): Map<String, Command> {
-        val commands = mutableMapOf<String, Command>()
-
-        currentWarCommandOption.onSome { currentWarCommand: CurrentWarCommand ->
-            commands[currentWarCommand.name] = currentWarCommand
-        }
-
-        return commands
+        return mapOf(
+            clanWarLeagueCommand.name to clanWarLeagueCommand,
+            currentWarCommand.name to currentWarCommand
+        )
     }
-
-    /**
-     * Singleton provider for the current war command.
-     *
-     * @return Option of CurrentWarCommand.
-     */
-    @Named("currentWarCommandOption")
-    @Single
-    fun currentWarCommand(@Named("clashAPIOption") clashAPIOption: Option<ClashAPI>): Option<CurrentWarCommand> =
-        clashAPIOption.map { clashAPI: ClashAPI -> CurrentWarCommand(clashAPI) }
 }

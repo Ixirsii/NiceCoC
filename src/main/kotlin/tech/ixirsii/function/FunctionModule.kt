@@ -28,16 +28,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package tech.ixirsii.data
+package tech.ixirsii.function
 
-import discord4j.rest.util.Color
+import org.koin.core.annotation.ComponentScan
+import org.koin.core.annotation.Module
 
 /**
- * Embed title, description, and color.
+ * Koin module for bot commands.
  *
- * @property color Color of the embed.
- * @property description Description of the embed.
- * @property title Title of the embed.
  * @author Ixirsii <ixirsii@ixirsii.tech>
  */
-data class WarEmbedInfo(val color: Color, val description: String, val title: String)
+@ComponentScan("tech.ixirsii.function")
+@Module
+class FunctionModule

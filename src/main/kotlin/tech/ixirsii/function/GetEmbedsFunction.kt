@@ -28,34 +28,46 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package tech.ixirsii
+package tech.ixirsii.function
 
-import org.koin.core.context.startKoin
-import org.koin.ksp.generated.module
-import tech.ixirsii.api.ApiModule
-import tech.ixirsii.command.CommandModule
-import tech.ixirsii.function.FunctionModule
-import tech.ixirsii.listener.ListenerModule
-import tech.ixirsii.module.NiceCoCModule
+import discord4j.core.`object`.entity.User
+import discord4j.core.spec.EmbedCreateSpec
+import reactor.core.publisher.Mono
+import reactor.util.function.Tuple2
+import tech.ixirsii.logging.Logging
 
 /**
- * Main function/program entry point.
+ * Base class for functions that build embeds.
  *
- * Registers Koin modules and starts the bot.
+ * @author Ixirsii <ixirsii@ixirsii.tech>
  */
-fun main() {
-    startKoin {
-        modules(
-            ApiModule().module,
-            CommandModule().module,
-            FunctionModule().module,
-            ListenerModule().module,
-            NiceCoCModule().module
-        )
+abstract class GetEmbedsFunction<T> : Logging {
+
+    /**
+     * Get a mono of list of embeds for a command response.
+     *
+     * @param clanTag Clan tag.
+     * @param dataMono Mono containing the data that will be used to build the embeds.
+     * @param userMono Mono containing the user/post author that will be used to set embed author.
+     * @return mono of list of embeds for a command response.
+     */
+    protected fun getEmbeds(
+        clanTag: String,
+        dataMono: Mono<T>,
+        userMono: Mono<User>
+    ): Mono<List<EmbedCreateSpec>> {
+        log.trace("Asynchronously building war status embed")
+
+        return Mono.zip(dataMono, userMono)
+            .map { tuple: Tuple2<T, User> -> getEmbeds(clanTag, tuple.t1, tuple.t2) }
     }
 
-    NiceCoCBot().use {
-        it.init()
-        it.run()
-    }
+    /**
+     * Get list of embeds for a command response.
+     *
+     * @param clanTag Clan tag.
+     * @param data Data that will be used to build the embeds.
+     * @param user User/post author that will be used to set embed author.
+     */
+    protected abstract fun getEmbeds(clanTag: String, data: T, user: User): List<EmbedCreateSpec>
 }

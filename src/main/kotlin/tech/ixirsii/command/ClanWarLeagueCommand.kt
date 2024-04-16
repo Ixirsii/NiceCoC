@@ -40,32 +40,32 @@ import org.koin.core.annotation.Single
 import reactor.core.publisher.Mono
 import tech.ixirsii.command.Command.Companion.CLAN_OPTION_NAME
 import tech.ixirsii.data.Clan
-import tech.ixirsii.function.CurrentWarFunction
+import tech.ixirsii.function.ClanWarLeagueFunction
 import tech.ixirsii.logging.Logging
 import tech.ixirsii.logging.LoggingImpl
 import kotlin.jvm.optionals.getOrElse
 
 /**
- * Command to get info about the current war.
+ * Command to get info about the Clan War League.
  *
  * @author Ixirsii <ixirsii@ixirsii.tech>
  */
 @Single
-class CurrentWarCommand(
+class ClanWarLeagueCommand(
     clanOption: ApplicationCommandOptionData,
-    private val currentWarFunction: CurrentWarFunction,
-) : Command, Logging by LoggingImpl<CurrentWarCommand>() {
+    private val clanWarLeagueFunction: ClanWarLeagueFunction,
+) : Command, Logging by LoggingImpl<ClanWarLeagueCommand>() {
     /**
      * Command name.
      */
-    override val name: String = "current_war"
+    override val name: String = "cwl"
 
     /**
      * [ApplicationCommandRequest] to register the command with Discord APIs.
      */
     override val request: ApplicationCommandRequest = ApplicationCommandRequest.builder()
         .name(name)
-        .description("Get current war information")
+        .description("Get clan war league information")
         .addOption(clanOption)
         .build()
 
@@ -83,6 +83,6 @@ class CurrentWarCommand(
                     .getOrElse { Clan.MIDWEST_WARRIOR.tag }
             )
         )
-        .flatMap { clanTag: String -> currentWarFunction.getCurrentWarEmbeds(clanTag, event.client.self) }
+        .flatMap { clanTag: String -> clanWarLeagueFunction.getCWLEmbeds(clanTag, event.client.self) }
         .flatMap { embeds: List<EmbedCreateSpec> -> event.editReply().withEmbedsOrNull(embeds) }
 }

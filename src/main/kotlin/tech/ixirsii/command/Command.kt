@@ -52,4 +52,11 @@ interface Command {
      * @param event Chat command event.
      */
     fun listener(event: ChatInputInteractionEvent): Mono<Any>
+
+    companion object {
+        /**
+         * Command option name for the clan option.
+         */
+        const val CLAN_OPTION_NAME = "clan"
+    }
 }
