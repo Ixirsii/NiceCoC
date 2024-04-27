@@ -114,7 +114,7 @@ class CurrentWarFunction(
                     .getOrElse {
                         listOf(
                             EmbedCreateSpec.builder()
-                                .author(tuple.t1.username, "https://github.com/Ixirsii/NiceCoC", tuple.t1.avatarUrl)
+                                .author(tuple.t1.username, AUTHOR_URL, tuple.t1.avatarUrl)
                                 .color(RED)
                                 .title("Error getting war status")
                                 .thumbnail(CLASH_LOGO_URL)
@@ -158,11 +158,11 @@ class CurrentWarFunction(
             }
 
             State.CLAN_NOT_FOUND -> {
-                buildEmbeds(user, RED, "Error", "Clan not found")
+                buildEmbeds(user, RED, ERROR, "Clan not found")
             }
 
             State.ACCESS_DENIED -> {
-                buildEmbeds(user, RED, "Error", "Clan war log is not public")
+                buildEmbeds(user, RED, ERROR, "Clan war log is not public")
             }
         }
     }
@@ -170,7 +170,7 @@ class CurrentWarFunction(
     private fun buildEmbeds(user: User, color: Color, title: String, description: String): List<EmbedCreateSpec> {
         return listOf(
             EmbedCreateSpec.builder()
-                .author(user.username, "https://github.com/Ixirsii/NiceCoC", user.avatarUrl)
+                .author(user.username, AUTHOR_URL, user.avatarUrl)
                 .color(color)
                 .title(title)
                 .description(description)
@@ -185,7 +185,7 @@ class CurrentWarFunction(
 
         return memberFields.chunked(25) { fields: List<EmbedCreateFields.Field> ->
             EmbedCreateSpec.builder()
-                .author(user.username, "https://github.com/Ixirsii/NiceCoC", user.avatarUrl)
+                .author(user.username, AUTHOR_URL, user.avatarUrl)
                 .color(color)
                 .addAllFields(fields)
                 .title(title)
@@ -303,7 +303,9 @@ class CurrentWarFunction(
 
     private companion object {
         private const val ATTACK_PERCENTAGE_FORMAT = "%.1f%%"
+        private const val AUTHOR_URL = "https://github.com/Ixirsii/NiceCoC"
         private const val CLASH_LOGO_URL = "https://i.imgur.com/S95pJ9o.png"
+        private const val ERROR = "Error"
         private const val UNKNOWN = "Unknown"
     }
 }
