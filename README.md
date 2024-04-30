@@ -14,4 +14,4 @@ Discord.
 
 NiceCoC requires the following software to be installed:
 
-- [Java 19](https://adoptium.net/temurin/releases?version=19)
+- [Java 21](https://adoptium.net/temurin/releases?version=21)

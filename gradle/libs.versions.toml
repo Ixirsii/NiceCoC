@@ -13,13 +13,10 @@ kotlinx = '1.8.0'
 kotlinxSerialization = '1.6.3'
 ksp = '1.9.23-1.0.20'
 logback = '1.5.6'
-netty = '4.1.109.Final'
-okhttp = '5.0.0-alpha.14'
 slf4J = '2.0.13'
 
 [libraries]
 arrow-core = { module = 'io.arrow-kt:arrow-core', version.ref = 'arrow' }
-arrow-fx-coroutines = { module = 'io.arrow-kt:arrow-fx-coroutines', version.ref = 'arrow' }
 detekt-formatting = { module = 'io.gitlab.arturbosch.detekt:detekt-formatting', version.ref = 'detekt' }
 discord4j-core = { module = 'com.discord4j:discord4j-core', version.ref = 'discord4J' }
 guava = { module = 'com.google.guava:guava', version.ref = 'guava' }
@@ -29,7 +26,6 @@ jackson-dataformat-yaml = { module = 'com.fasterxml.jackson.dataformat:jackson-d
 jackson-module-kotlin = { module = 'com.fasterxml.jackson.module:jackson-module-kotlin', version.ref = 'jackson' }
 jackson-module-parameter-names = { module = 'com.fasterxml.jackson.module:jackson-module-parameter-names', version.ref = 'jackson' }
 junit-jupiter = { module = 'org.junit.jupiter:junit-jupiter', version.ref = 'junit' }
-junit-jupiter-params = { module = 'org.junit.jupiter:junit-jupiter-params', version.ref = 'junit' }
 junit-platform-launcher = { module = 'org.junit.platform:junit-platform-launcher' }
 klash-api = { module = 'tech.ixirsii:klash-api', version.ref = 'klashApi' }
 koin-annotations = { module = 'io.insert-koin:koin-annotations', version.ref = 'koinKsp' }
@@ -39,14 +35,10 @@ kotlinx-coroutines-core = { module = 'org.jetbrains.kotlinx:kotlinx-coroutines-c
 kotlinx-serialization-json = { module = 'org.jetbrains.kotlinx:kotlinx-serialization-json', version.ref = 'kotlinxSerialization' }
 ksp = { module = "io.insert-koin:koin-ksp-compiler", version.ref = 'koinKsp' }
 logback-classic = { module = 'ch.qos.logback:logback-classic', version.ref = 'logback' }
-netty-common = { module = 'io.netty:netty-common', version.ref = 'netty' }
-okhttp = { module = 'com.squareup.okhttp3:okhttp', version.ref = 'okhttp' }
 slf4j-api = { module = 'org.slf4j:slf4j-api', version.ref = 'slf4J' }
 
 [bundles]
-arrow = ['arrow-core', 'arrow-fx-coroutines']
 jackson = ['jackson-core', 'jackson-databind', 'jackson-dataformat-yaml', 'jackson-module-kotlin', 'jackson-module-parameter-names']
-junit = ['junit-jupiter', 'junit-jupiter-params']
 koin = ['koin-annotations', 'koin-core']
 
 [plugins]

@@ -6,7 +6,6 @@ plugins {
     alias(libs.plugins.ksp)
 
     application
-    jacoco
 }
 
 group = "tech.ixirsii"
@@ -24,7 +23,7 @@ dependencies {
     ksp(libs.ksp)
 
     // Arrow-kt
-    implementation(libs.bundles.arrow)
+    implementation(libs.arrow.core)
     // Discord4J
     implementation(libs.discord4j.core)
     // Google Guava
@@ -41,17 +40,13 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     // Logback
     implementation(libs.logback.classic)
-    // Netty
-    implementation(libs.netty.common)
-    // OkHttp
-    implementation(libs.okhttp)
     // SLF4J
     implementation(libs.slf4j.api)
 
     // Kotlin Test
     testImplementation(kotlin("test"))
     // JUnit
-    testImplementation(libs.bundles.junit)
+    testImplementation(libs.junit.jupiter)
     testRuntimeOnly(libs.junit.platform.launcher)
     // Koin Test
     testImplementation(libs.koin.test)
