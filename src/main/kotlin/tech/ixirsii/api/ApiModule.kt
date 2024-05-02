@@ -30,13 +30,8 @@
 
 package tech.ixirsii.api
 
-import arrow.core.Option
-import discord4j.core.GatewayDiscordClient
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Module
-import org.koin.core.annotation.Named
-import org.koin.core.annotation.Single
-import tech.ixirsii.command.Command
 
 /**
  * Koin module for API implementations.
@@ -45,16 +40,4 @@ import tech.ixirsii.command.Command
  */
 @ComponentScan("tech.ixirsii.api")
 @Module
-class ApiModule {
-    /**
-     * Singleton provider for the Discord API.
-     *
-     * @return The Discord API.
-     */
-    @Named("discordAPIOption")
-    @Single
-    fun discordApi(
-        @Named("clientOption") clientOption: Option<GatewayDiscordClient>,
-        commands: Map<String, Command>,
-    ): Option<DiscordApi> = clientOption.map { client: GatewayDiscordClient -> DiscordApi(client, commands) }
-}
+class ApiModule

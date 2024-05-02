@@ -60,12 +60,12 @@ class NiceCoCBot : AutoCloseable, KoinComponent, Logging by LoggingImpl<NiceCoCB
     /**
      * Bot configuration.
      */
-    private val configOption: Option<Config> by inject(named("configOption"))
+    private val configOption: Option<Config> by inject()
 
     /**
      * Discord API interface.
      */
-    private val discordApiOption: Option<DiscordApi> by inject(named("discordAPIOption"))
+    private val discordApi: DiscordApi by inject()
 
     /**
      * Internal event bus.
@@ -87,7 +87,8 @@ class NiceCoCBot : AutoCloseable, KoinComponent, Logging by LoggingImpl<NiceCoCB
      */
     override fun close() {
         log.trace("Cleaning up bot")
-        discordApiOption.onSome { discordApi: DiscordApi -> discordApi.close() }
+
+        discordApi.close()
     }
 
     /**
@@ -99,8 +100,8 @@ class NiceCoCBot : AutoCloseable, KoinComponent, Logging by LoggingImpl<NiceCoCB
             .onSome {
                 // subscribers.forEach(eventBus::register)
                 eventBus.register(this)
+                discordApi.init()
             }
-        discordApiOption.onSome { discordApi: DiscordApi -> discordApi.init() }
     }
 
     /**
@@ -113,7 +114,7 @@ class NiceCoCBot : AutoCloseable, KoinComponent, Logging by LoggingImpl<NiceCoCB
         log.trace("Stopping {{ gracefully: {} }}", event.isGraceful)
 
         if (event.isGraceful) {
-            discordApiOption.onSome { discordApi: DiscordApi -> discordApi.close() }
+            discordApi.close()
         } else {
             exitProcess(1)
         }
@@ -125,7 +126,7 @@ class NiceCoCBot : AutoCloseable, KoinComponent, Logging by LoggingImpl<NiceCoCB
     override fun run() {
         log.trace("Running bot")
 
-        discordApiOption.onSome { discordApi: DiscordApi -> discordApi.run() }
+        discordApi.run()
     }
 
     /* *************************************** Private utility functions **************************************** */
@@ -147,14 +148,14 @@ class NiceCoCBot : AutoCloseable, KoinComponent, Logging by LoggingImpl<NiceCoCB
             configFile.writeBytes(Resources.toByteArray(Resources.getResource(resourceFilePath)))
 
             log.info(
-                "Generated new user config file at \"{}\". Please customize your configuration then restart the bot",
+                "Generated new user config file at \"{}\".\nPlease customize your configuration then restart the bot",
                 configFile.absolutePath
             )
         } catch (ex: IllegalArgumentException) {
             log.error("Failed to get resource {}", resourceFilePath, ex)
         } catch (ex: IOException) {
             log.error(
-                "Encountered exception while trying to write new user config file to \"{}\"",
+                "Caught exception while trying to write new user config file to \"{}\"",
                 configFile.absolutePath,
                 ex
             )

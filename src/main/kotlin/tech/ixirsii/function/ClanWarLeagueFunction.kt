@@ -31,66 +31,79 @@
 package tech.ixirsii.function
 
 import arrow.core.Either
-import arrow.core.Option
 import arrow.core.getOrElse
 import discord4j.core.`object`.entity.User
 import discord4j.core.spec.EmbedCreateSpec
 import org.koin.core.annotation.Single
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import tech.ixirsii.command.CurrentWarCommand
+import tech.ixirsii.command.ClanWarLeagueCommand
 import tech.ixirsii.data.ClanWarLeagueSeason
-import tech.ixirsii.data.RED
 import tech.ixirsii.klash.client.ClashAPI
 import tech.ixirsii.klash.error.ClashAPIError
 import tech.ixirsii.klash.types.cwl.ClanWarLeagueGroup
+import tech.ixirsii.klash.types.cwl.ClanWarLeagueRound
 import tech.ixirsii.klash.types.war.War
 import tech.ixirsii.logging.Logging
 import tech.ixirsii.logging.LoggingImpl
 
 /**
- * Logic for [CurrentWarCommand].
+ * Logic for [ClanWarLeagueCommand].
  *
  * @author Ixirsii <ixirsii@ixirsii.tech>
  */
 @Single
-class CurrentWarFunction(
-    private val clashAPI: ClashAPI,
-    private val clanWarLeagueFunction: ClanWarLeagueFunction,
-) : GetEmbedsFunction<Option<War>>(), Logging by LoggingImpl<CurrentWarFunction>() {
-    /**
-     * Get [EmbedCreateSpec]s detailing the current war status.
-     *
-     * @return [EmbedCreateSpec]s detailing the current war status.
-     */
-    fun getCurrentWarEmbeds(clanTag: String, userMono: Mono<User>): Mono<List<EmbedCreateSpec>> {
-        log.trace("Getting current war")
+class ClanWarLeagueFunction(private val clashAPI: ClashAPI) :
+    GetEmbedsFunction<ClanWarLeagueSeason>(),
+    Logging by LoggingImpl<ClanWarLeagueFunction>() {
 
-        val warMono: Mono<Option<War>> = clashAPI.leagueGroup(clanTag)
+    /**
+     * Get [EmbedCreateSpec]s detailing the clan war league status.
+     *
+     * @return [EmbedCreateSpec]s detailing the clan war league status.
+     */
+    fun getCWLEmbeds(clanTag: String, userMono: Mono<User>): Mono<List<EmbedCreateSpec>> {
+        log.trace("Getting CWL embeds")
+
+        val seasonMono: Mono<ClanWarLeagueSeason> = clashAPI.leagueGroup(clanTag)
             .flatMap { groupEither: Either<ClashAPIError, ClanWarLeagueGroup> ->
                 // Ignore errors from the league group endpoint, as the API throws 404 errors after CWL has "expired".
                 val group: ClanWarLeagueGroup = groupEither.getOrElse { ClanWarLeagueGroup() }
 
-                if (group.state == ClanWarLeagueGroup.State.WAR) {
-                    clanWarLeagueFunction.getLeagueWars(clanTag, group)
-                        .map { season: ClanWarLeagueSeason -> season.activeWar }
-                } else {
-                    clashAPI.currentWar(clanTag).map { warEither: Either<ClashAPIError, War> ->
-                        Option.fromNullable(warEither.getOrNull())
-                    }
-                }
+                getLeagueWars(clanTag, group)
             }
 
-        return getEmbeds(clanTag, warMono, userMono)
+        return getEmbeds(clanTag, seasonMono, userMono)
     }
 
-    override fun getEmbeds(clanTag: String, data: Option<War>, user: User): List<EmbedCreateSpec> {
-        log.trace("Getting war status embeds for war data {}", data)
+    /**
+     * Get the Clan War League wars for clan [clanTag] in the given group.
+     *
+     * @param clanTag The clan tag to get wars for.
+     * @param group The CWL group to get wars for.
+     * @return the Clan War League wars for clan [clanTag] in the given group.
+     */
+    fun getLeagueWars(clanTag: String, group: ClanWarLeagueGroup): Mono<ClanWarLeagueSeason> {
+        log.trace("Getting CWL wars")
 
-        return data.map { war: War ->
-            getEmbeds(clanTag, war, user)
-        }.getOrElse {
-            listOf(buildEmbed(user, RED, ERROR, "Error getting war status"))
-        }
+        return Flux.fromIterable(
+            group.rounds.map { round: ClanWarLeagueRound ->
+                Flux.merge(
+                    round.warTags.filter { tag: String -> tag != "#0" }.map { tag: String -> clashAPI.leagueWar(tag) }
+                )
+            }
+        )
+            .flatMap { flux: Flux<Either<ClashAPIError, War>> -> flux.collectList() }
+            .collectList()
+            .map { warRounds: List<List<Either<ClashAPIError, War>>> ->
+                ClanWarLeagueSeason(clanTag, warRounds)
+            }
+    }
+
+    override fun getEmbeds(clanTag: String, data: ClanWarLeagueSeason, user: User): List<EmbedCreateSpec> {
+        log.trace("Building CWL war embeds")
+
+        return data.wars.flatMap { war: War -> getEmbeds(clanTag, war, user) }
     }
 
     /* *************************************** Private utility functions **************************************** */

@@ -32,6 +32,7 @@ package tech.ixirsii.api
 
 import discord4j.core.GatewayDiscordClient
 import discord4j.rest.service.ApplicationService
+import org.koin.core.annotation.Single
 import reactor.core.publisher.Mono
 import tech.ixirsii.command.Command
 import tech.ixirsii.logging.Logging
@@ -42,6 +43,7 @@ import tech.ixirsii.logging.LoggingImpl
  *
  * @author Ixirsii <ixirsii@ixirsii.tech>
  */
+@Single
 class DiscordApi(
     /**
      * Discord4J gateway client.

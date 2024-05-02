@@ -65,23 +65,22 @@ import java.io.File
 class NiceCoCModule : Logging by LoggingImpl<NiceCoCModule>() {
 
     /**
-     * Singleton provider for [ClashAPI].
-     *
      * @return [ClashAPI] singleton.
      */
-    @Named("clashAPIOption")
     @Single
-    fun clashAPI(@Named("configOption") configOption: Option<Config>): Option<ClashAPI> =
-        configOption.map { config: Config -> ClashAPI(config.clashOfClansToken) }
+    fun clashAPI(config: Config): ClashAPI = ClashAPI(config.clashOfClansToken)
 
     /**
-     * Singleton provider for [Config].
-     *
      * @return [Config] singleton.
      */
-    @Named("configOption")
     @Single
-    fun config(userConfigFile: File, yamlMapper: ObjectMapper): Option<Config> = if (userConfigFile.exists()) {
+    fun config(configOption: Option<Config>): Config = configOption.getOrNull()!!
+
+    /**
+     * @return [Config] singleton.
+     */
+    @Single
+    fun configOption(userConfigFile: File, yamlMapper: ObjectMapper): Option<Config> = if (userConfigFile.exists()) {
         yamlMapper.readValue(userConfigFile, Config::class.java).some()
     } else {
         log.warn("User config file does not exist at {}", userConfigFile.absolutePath)
@@ -90,40 +89,29 @@ class NiceCoCModule : Logging by LoggingImpl<NiceCoCModule>() {
     }
 
     /**
-     * Singleton provider for [EventBus].
-     *
      * @return [EventBus] singleton.
      */
     @Single
     fun eventBus(): EventBus = EventBus()
 
     /**
-     * Singleton provider for [GatewayDiscordClient].
-     *
      * @return [GatewayDiscordClient] singleton.
      */
-    @Named("clientOption")
     @Single
-    fun gatewayDiscordClient(
-        @Named("configOption") configOption: Option<Config>,
-        discordListener: DiscordListener,
-    ): Option<GatewayDiscordClient> = configOption.map { config: Config ->
-        val client: GatewayDiscordClient =
-            DiscordClient.create(config.discordToken)
-                .gateway()
-                .withEventDispatcher { it.on(ReadyEvent::class.java).doOnNext(discordListener::readyEventListener) }
-                .login()
-                .block()!!
+    fun gatewayDiscordClient(config: Config, discordListener: DiscordListener): GatewayDiscordClient {
+        val client: GatewayDiscordClient = DiscordClient.create(config.discordToken)
+            .gateway()
+            .withEventDispatcher { it.on(ReadyEvent::class.java).doOnNext(discordListener::readyEventListener) }
+            .login()
+            .block()!!
 
         client.eventDispatcher.on(ChatInputInteractionEvent::class.java, discordListener::chatInputInteractionListener)
             .subscribe()
 
-        client
+        return client
     }
 
     /**
-     * Singleton provider for the default config.yaml resource path.
-     *
      * @return the default config.yaml resource path.
      */
     @Named("resourceFilePath")
@@ -131,16 +119,12 @@ class NiceCoCModule : Logging by LoggingImpl<NiceCoCModule>() {
     fun resourceFilePath(): String = CONFIG_FILE_NAME
 
     /**
-     * Singleton provider for the user's config.yaml file.
-     *
      * @return the user's config.yaml file.
      */
     @Single
     fun userConfigFile(@Named("userConfigFilePath") path: String): File = File(path)
 
     /**
-     * Singleton provider for the user's config.yaml file path.
-     *
      * @return the user's config.yaml file path.
      */
     @Named("userConfigFilePath")
@@ -148,8 +132,6 @@ class NiceCoCModule : Logging by LoggingImpl<NiceCoCModule>() {
     fun userConfigFilePath(): String = CONFIG_DIRECTORY + CONFIG_FILE_NAME
 
     /**
-     * Singleton provider for [ObjectMapper].
-     *
      * @return [ObjectMapper] singleton.
      */
     @Single
