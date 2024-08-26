@@ -3,11 +3,15 @@ updates:
   - package-ecosystem: "gradle"
     directory: "/"
     schedule:
+      day: "sunday"
       interval: "weekly"
-    rebase-strategy: "disabled"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
+      day: "sunday"
       interval: "weekly"
-    rebase-strategy: "disabled"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
