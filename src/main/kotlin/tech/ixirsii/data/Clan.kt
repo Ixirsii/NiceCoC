@@ -38,6 +38,13 @@ package tech.ixirsii.data
  * @author Ixirsii <ixirsii@ixirsii.tech>
  */
 enum class Clan(val clanName: String, val tag: String) {
+    /**
+     * Midwest Warrior clan.
+     */
     MIDWEST_WARRIOR("Midwest Warrior", "2Q82UJVY"),
+
+    /**
+     * JJK clan.
+     */
     JJK("JJK", "2GPVJPYGV"),
 }

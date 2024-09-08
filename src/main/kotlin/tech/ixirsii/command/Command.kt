@@ -53,6 +53,9 @@ interface Command {
      */
     fun listener(event: ChatInputInteractionEvent): Mono<Any>
 
+    /**
+     * Command constants.
+     */
     companion object {
         /**
          * Command option name for the clan option.

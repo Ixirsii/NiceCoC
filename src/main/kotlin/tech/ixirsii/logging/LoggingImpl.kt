@@ -39,6 +39,9 @@ import org.slf4j.LoggerFactory
  * @author Ixirsii <ixirsii@ixirsii.tech>
  */
 class LoggingImpl(override val log: Logger) : Logging {
+    /**
+     * Create a [LoggingImpl] for a class.
+     */
     companion object {
         /**
          * Create a [LoggingImpl] for a class.
